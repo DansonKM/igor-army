@@ -27,7 +27,7 @@
             height: 100%;
             background: url('background.jpg') center/cover no-repeat;
             z-index: 0;
-            filter: brightness(0.5) contrast(1.25) saturate(0.5);
+            filter: brightness(0.75) contrast(1.1) saturate(0.7);
         }
 
         .bg-overlay {
@@ -36,8 +36,20 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.55);
+            background: rgba(0, 0, 0, 0.25);
             z-index: 1;
+        }
+
+        /* === ВИНЬЕТКА === */
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.7) 100%);
+            z-index: 5;
+            pointer-events: none;
         }
 
         /* === СНЕГ === */
@@ -269,6 +281,7 @@
     <!-- Фон -->
     <div class="bg-kremlin"></div>
     <div class="bg-overlay"></div>
+    <div class="vignette"></div>
 
     <!-- Снег -->
     <canvas id="snow-canvas"></canvas>

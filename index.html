@@ -100,9 +100,22 @@ body.on #bg { opacity: 1; }
     100% { transform: translate3d(0, 0, 0); }
 }
 
+/* Виньетка: радиальная по центру + явные боковые градиенты, чтобы левый и правый
+   край экрана уходили в тень, а не обрывались резкой вертикальной границей. */
 #vignette {
     z-index: 10;
-    background: radial-gradient(ellipse 84% 80% at 50% 46%, transparent 42%, rgba(0, 0, 0, .74) 100%);
+    background:
+        linear-gradient(to right,
+            rgba(4, 5, 6, .58) 0%,
+            rgba(4, 5, 6, .34) 8%,
+            rgba(4, 5, 6, .12) 18%,
+            rgba(4, 5, 6, 0) 32%),
+        linear-gradient(to left,
+            rgba(4, 5, 6, .58) 0%,
+            rgba(4, 5, 6, .34) 8%,
+            rgba(4, 5, 6, .12) 18%,
+            rgba(4, 5, 6, 0) 32%),
+        radial-gradient(ellipse 84% 80% at 50% 46%, transparent 42%, rgba(0, 0, 0, .74) 100%);
 }
 
 /* Маска даёт мягкое затухание снега у верхнего и нижнего края — снег не «щёлкает»
@@ -353,10 +366,16 @@ body.on .rule { transform: scaleX(1); }
 
     const DATE_KEY = 'igor_start_v1';
 
-    // События, дающие браузеру user activation. Только по ним он снимает
-    // autoplay-блокировку звука. pointermove/mousemove/scroll сюда НЕ входят:
-    // они не считаются взаимодействием, звук с них так и не включится.
-    const UNLOCK_EVENTS = ['pointerdown', 'keydown', 'touchstart', 'wheel', 'scroll'];
+    // События, по которым повторно пробуем включить звук, если браузер заблокировал
+    // автозапуск. Список широкий намеренно: подойдёт любое касание страницы, включая
+    // прокрутку и движение мыши — так звук начинается практически сразу.
+    const UNLOCK_EVENTS = [
+        'pointerdown', 'pointerup', 'click', 'dblclick', 'contextmenu',
+        'keydown', 'touchstart', 'wheel', 'scroll',
+        'pointermove', 'mousemove', 'focus'
+    ];
+    // Пауза между попытками, чтобы mousemove не генерировал десятки play() в секунду.
+    const RETRY_MS = 1200;
 
     const $ = id => document.getElementById(id);
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -369,22 +388,22 @@ body.on .rule { transform: scaleX(1); }
     let muted = false;
     let unlocking = false;
     let attempts = 0;
+    // -Infinity, а не 0: performance.now() отсчитывается от начала навигации, то есть
+    // сразу после загрузки он маленький. При lastTry = 0 первый вызов startAudio()
+    // попадал под троттл и выходил, не успев задать src.
+    let lastTry = -Infinity;
 
-    function ramp(el, to, ms) {
-        const from = el.volume;
-        const t0 = performance.now();
-        const id = setInterval(() => {
-            const k = Math.min(1, (performance.now() - t0) / ms);
-            el.volume = from + (to - from) * k;
-            if (k >= 1 || muted) clearInterval(id);
-        }, 40);
-    }
+    // Громкость выставляется сразу и окончательно. Раньше она поднималась ramp-ом
+    // после снятия mute; раз мута больше нет, мягкий вход не нужен.
+    music.volume = CONFIG.musicVol;
+    ambient.volume = CONFIG.ambientVol;
 
     function detachUnlock() {
         UNLOCK_EVENTS.forEach(e => window.removeEventListener(e, tryStart, true));
     }
 
-    // Страховка на случай, если браузер всё же запретит автозапуск: первый же клик запускает звук.
+    // Страховка на случай, если браузер запретил автозапуск: первое же касание
+    // страницы (в т.ч. движение мыши или прокрутка) включает звук.
     function armUnlock() {
         if (unlocking || audioOn) return;
         unlocking = true;
@@ -397,71 +416,42 @@ body.on .rule { transform: scaleX(1); }
         startAudio();
     }
 
-    // Звук стартует сразу при загрузке — насколько это вообще возможно.
+    // Звук включается напрямую, без mute: ни одного переключения muted в коде нет.
+    // Громкость выставлена заранее, поэтому как только браузер разрешит play() —
+    // сразу слышно.
     //
-    // Механика: браузеры разрешают автозапуск только для БЕЗЗВУЧНОГО медиа, поэтому
-    // сначала включаем playback в mute, затем снимаем mute. Но Chrome/Edge при снятии
-    // mute без жеста пользователя ПАУЗЯТ элемент (developer.chrome.com/blog/autoplay-2),
-    // то есть звук без клика включить нельзя в принципе.
-    //
-    // Поэтому после снятия mute мы обязательно ПРОВЕРЯЕМ, что playback выжил. Если
-    // браузер его остановил — откатываемся на mute и ждём первого взаимодействия.
-    // Раньше здесь ставился audioOn = true без проверки, из-за чего страховка
-    // отключалась и звук не включался уже никогда.
+    // Если браузер запретил автозапуск со звуком, play() отклоняется с
+    // NotAllowedError, и мы просто повторяем попытку на первом же касании.
+    // Никакого «стартовать в mute и потом снять» — Chrome на таком снятии
+    // останавливает элемент (developer.chrome.com/blog/autoplay-2), т.е. схема
+    // всё равно не работает и только добавляет задержку.
     async function startAudio() {
         if (audioOn || unlocking) return;
+        const now = performance.now();
+        // Попытку отклонили по троттлу — слушатели уже израсходованы (once),
+        // поэтому вешаем их заново, иначе звук не включится никогда.
+        if (now - lastTry < RETRY_MS) { armUnlock(); return; }
+        lastTry = now;
         unlocking = true;
 
         // src задаём один раз: повторное присваивание того же URL перезапускает
-        // загрузку и сбрасывает currentTime, а retry может быть и на втором жесте.
+        // загрузку и сбрасывает currentTime, а попыток может быть много.
         if (!music.getAttribute('src')) music.src = 'Хор Иоанна Дамаскина - Конец Былины.mp3';
         if (!ambient.getAttribute('src')) ambient.src = 'snowstorm.mp3';
-        music.muted = ambient.muted = true;
-        music.volume = 0;
-        ambient.volume = 0;
         try { music.currentTime = 0; } catch (e) {}
 
-        try {
-            await music.play();
-        } catch (e) {
-            // Не далось даже беззвучно — ждём жест.
-            unlocking = false;
-            music.muted = ambient.muted = false;
-            if (++attempts <= 5) armUnlock();
-            return;
-        }
+        const started = await music.play().then(() => true, () => false);
+        unlocking = false;
 
-        // Снимаем mute. Если muted === true (пользователь раньше нажал M), playback
-        // останется жить, но беззвучно — это штатное поведение.
-        music.muted = ambient.muted = muted;
-
-        let blocked = false;
-        const onPause = () => { blocked = true; };
-        music.addEventListener('pause', onPause);
-        await new Promise(r => setTimeout(r, 200));
-        music.removeEventListener('pause', onPause);
-
-        if (blocked || music.paused) {
-            // Браузер заблокировал автозапуск со звуком: откатываем и ждём жест.
-            unlocking = false;
-            audioOn = false;
-            music.pause();
-            music.muted = ambient.muted = true;
-            music.volume = 0;
-            if (++attempts <= 5) armUnlock();
+        if (!started) {
+            if (++attempts <= 60) armUnlock();
             return;
         }
 
         audioOn = true;
-        unlocking = false;
         attempts = 0;
         detachUnlock();
-        // Повторный play() прогоняет политику ещё раз: если жест уже был,
-        // браузер честно применит mute = false.
-        music.play().catch(() => {});
         ambient.play().catch(() => {});
-        ramp(music, CONFIG.musicVol, 2600);
-        ramp(ambient, CONFIG.ambientVol, 4200);
     }
 
     function resume() {
@@ -473,14 +463,12 @@ body.on .rule { transform: scaleX(1); }
     document.addEventListener('visibilitychange', () => { if (!document.hidden) resume(); });
     window.addEventListener('pageshow', resume);
 
+    // Ручная заглушка по клавише M. Это осознанное действие пользователя, а не часть
+    // механики автозапуска: громкость не трогаем, mute не трогаем при старте.
     window.addEventListener('keydown', e => {
         if (e.code !== 'KeyM') return;
         muted = !muted;
         music.muted = ambient.muted = muted;
-        if (!muted && audioOn) {
-            ramp(music, CONFIG.musicVol, 700);
-            ramp(ambient, CONFIG.ambientVol, 700);
-        }
     });
 
     const canvas = $('snow');

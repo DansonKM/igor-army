@@ -4,353 +4,583 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
-<title>СКОЛЬКО ДНЕЙ</title>
+<title>До призыва Игоря</title>
 <link rel="preload" as="image" href="bg.jpg" fetchpriority="high">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-html { background: #08090a; }
 
 html, body { height: 100%; }
 
 body {
-    background: #08090a;
-    color: #e9e7dd;
+    background: #05070c;
+    color: #f3f6fb;
     overflow: hidden;
-    font-family: 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: Manrope, "Segoe UI", sans-serif;
     -webkit-font-smoothing: antialiased;
-    user-select: none;
     -webkit-tap-highlight-color: transparent;
 }
 
+button, a { font: inherit; color: inherit; }
+button { cursor: pointer; }
+
 .layer { position: fixed; inset: 0; pointer-events: none; }
 
-:root {
-    --photo-pos: center 52%;
-    --ink: #e9e7dd;      /* основной текст */
-    --dim: #a09e92;      /* подписи */
-    --faint: #74735f;    /* мелкие подписи */
-    --red: #c22222;      /* красный — основной акцент */
-    --red-deep: #8e1414;
-    --ease: cubic-bezier(.2, .7, .2, 1);
-}
-
-/* Фон: soft-light слой запечён прямо в bg.jpg, блендинга на весь экран нет.
-   Анимируется только transform — чисто композиторная операция. */
 #bg {
     z-index: 0;
-    inset: -5%;
-    background: url('bg.jpg') var(--photo-pos) / cover no-repeat;
-    will-change: transform;
-    animation: drift 120s ease-in-out infinite alternate;
-    opacity: 0;
-    transition: opacity 1.6s ease;
+    inset: -4%;
+    background: #07080b url("bg.jpg") center 42% / cover no-repeat;
+    transform: scale(1.05);
 }
-@keyframes drift {
-    from { transform: scale(1.02) translate3d(0, 0, 0); }
-    to   { transform: scale(1.07) translate3d(-.8%, -.5%, 0); }
-}
-body.on #bg { opacity: 1; }
 
 #shade {
     z-index: 2;
     background:
-        radial-gradient(ellipse 66% 48% at 50% 46%,
-            rgba(6, 7, 8, .76), rgba(6, 7, 8, .34) 62%, rgba(6, 7, 8, 0) 84%),
-        linear-gradient(to bottom,
-            rgba(6, 7, 8, .62) 0%,
-            rgba(6, 7, 8, .24) 30%,
-            rgba(6, 7, 8, .12) 62%,
-            rgba(6, 7, 8, .50) 100%);
+        linear-gradient(90deg, rgba(28, 4, 8, .55), transparent 22% 78%, rgba(28, 4, 8, .55)),
+        radial-gradient(ellipse 50% 42% at 50% 46%, rgba(18, 4, 8, .28), transparent 70%),
+        linear-gradient(to bottom, rgba(4, 8, 14, .35), transparent 28%, rgba(4, 8, 14, .55));
 }
 
-/* Дымка: был красный — заменён на нейтрально-хаки-серый, чтобы не спорить с палитрой. */
-#smog {
-    z-index: 3;
-    background:
-        radial-gradient(ellipse 60% 46% at 50% 28%, rgba(74, 82, 92, .14), transparent 72%),
-        radial-gradient(ellipse 74% 36% at 50% 84%, rgba(126, 26, 16, .17), transparent 72%);
-    will-change: opacity;
-    animation: smog 24s ease-in-out infinite alternate;
-}
-@keyframes smog {
-    from { opacity: .74; }
-    to   { opacity: 1; }
-}
-
-/* Лёгкий характер: очень слабое плёночное зерно, без blend-mode.
-   inset: -8% обязателен — зерно смещается на ±5%, и при inset:0 у краёв экрана
-   каждые 1.6с появлялась полоса без шума, что читалось как «мигающие рамки». */
-#grain {
-    z-index: 8;
-    inset: -8%;
-    opacity: .07;
-    will-change: transform;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='170' height='170' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
-    animation: grain 1.6s steps(1) infinite;
-}
-@keyframes grain {
-    0%   { transform: translate3d(0, 0, 0); }
-    14%  { transform: translate3d(-4%, -3%, 0); }
-    28%  { transform: translate3d(3%, -5%, 0); }
-    42%  { transform: translate3d(-5%, 2%, 0); }
-    57%  { transform: translate3d(5%, 4%, 0); }
-    71%  { transform: translate3d(-2%, 5%, 0); }
-    85%  { transform: translate3d(4%, -2%, 0); }
-    100% { transform: translate3d(0, 0, 0); }
-}
-
-/* Виньетка: радиальная по центру + явные боковые градиенты, чтобы левый и правый
-   край экрана уходили в тень, а не обрывались резкой вертикальной границей. */
-#vignette {
-    z-index: 10;
-    background:
-        linear-gradient(to right,
-            rgba(4, 5, 6, .58) 0%,
-            rgba(4, 5, 6, .34) 8%,
-            rgba(4, 5, 6, .12) 18%,
-            rgba(4, 5, 6, 0) 32%),
-        linear-gradient(to left,
-            rgba(4, 5, 6, .58) 0%,
-            rgba(4, 5, 6, .34) 8%,
-            rgba(4, 5, 6, .12) 18%,
-            rgba(4, 5, 6, 0) 32%),
-        radial-gradient(ellipse 84% 80% at 50% 46%, transparent 42%, rgba(0, 0, 0, .74) 100%);
-}
-
-/* Маска даёт мягкое затухание снега у верхнего и нижнего края — снег не «щёлкает»
-   при пересоздании на границах кадра. Маска статичная, поэтому compositor считает её один раз. */
 #snow {
-    z-index: 11;
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 15%, #000 87%, transparent 100%);
-    mask-image: linear-gradient(to bottom, transparent 0, #000 15%, #000 87%, transparent 100%);
+    z-index: 4;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 12%, #000 88%, transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0, #000 12%, #000 88%, transparent 100%);
 }
 
-#main {
+#app {
     position: fixed;
     inset: 0;
-    z-index: 20;
+    z-index: 10;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+}
+
+.panel {
+    flex: 0 0 0px;
+    width: 0;
+    min-width: 0;
+    height: 100%;
+    overflow: hidden;
+    background: rgba(7, 9, 14, .9);
+    backdrop-filter: blur(8px);
+    transition: flex-basis .38s ease;
+}
+
+.panel-in {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+}
+
+#feed .panel-in { width: min(380px, 34vw); }
+#news .panel-in { width: min(420px, 36vw); }
+
+html[data-feed="1"] #feed { flex-basis: min(380px, 34vw); }
+html[data-news="1"] #news { flex-basis: min(420px, 36vw); }
+
+.wall {
+    flex: 0 0 0px;
+    width: 0;
+    background: #e10600;
+    transition: flex-basis .38s ease;
+}
+
+html[data-feed="1"] #wall-feed,
+html[data-news="1"] #wall-news { flex-basis: 8px; }
+
+.panel header {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 22px 20px 16px;
+    background: rgba(7, 9, 14, .92);
+    border-bottom: 1px solid rgba(255, 255, 255, .12);
+}
+
+.panel h2 {
+    font-family: Unbounded, Manrope, sans-serif;
+    font-size: .92rem;
+    font-weight: 500;
+    line-height: 1.35;
+}
+
+.panel h2 a { text-decoration: none; }
+.panel h2 a:hover { color: #ff8a8a; }
+
+.switch {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    margin-bottom: 14px;
+}
+
+.switch button {
+    padding: 0;
+    border: 0;
+    background: none;
+    font-family: Unbounded, Manrope, sans-serif;
+    font-size: .62rem;
+    font-weight: 500;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #8ea3b8;
+}
+
+.switch button[aria-selected="true"] { color: #ff3b3b; }
+
+.counts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin-top: 16px;
+    border-top: 1px solid rgba(255, 59, 59, .45);
+}
+
+.counts a {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding-top: 12px;
+    text-decoration: none;
+}
+
+.counts a + a {
+    padding-left: 16px;
+    border-left: 1px solid rgba(255, 255, 255, .14);
+}
+
+.counts b {
+    font-family: Unbounded, Manrope, sans-serif;
+    font-size: 2.6rem;
+    font-weight: 500;
+    line-height: .85;
+    letter-spacing: -.04em;
+    font-variant-numeric: tabular-nums;
+    color: #fff;
+}
+
+.counts em {
+    font-style: normal;
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: #ff5a5a;
+}
+
+.counts a:hover b { color: #ff5a5a; }
+
+.note {
+    margin-top: 8px;
+    font-size: .8rem;
+    line-height: 1.35;
+    color: #8ea3b8;
+}
+
+.note.more { padding: 14px 18px 20px; }
+
+.tape { padding: 6px 0 12px; }
+
+.hit, .card {
+    display: block;
+    margin: 0;
+    padding: 0;
+    text-decoration: none;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, .1);
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.hit:hover, .card:hover { background: rgba(255, 255, 255, .04); }
+
+.hit {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 12px;
+    align-items: center;
+    padding: 14px 18px;
+}
+
+.card .body, .hit .body { display: block; min-width: 0; }
+
+.pic {
+    display: block;
+    background: #1a2433 center / cover no-repeat;
+}
+
+.hit .pic { width: 120px; height: 76px; }
+.card .pic { width: 100%; height: 190px; }
+.card .pic:not([style]) { display: none; }
+.card .body { padding: 12px 18px 16px; }
+
+.hit i, .card i {
+    display: block;
+    margin-bottom: 4px;
+    font-style: normal;
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #ff5a5a;
+}
+
+.hit b, .card b {
+    display: block;
+    font-family: Unbounded, Manrope, sans-serif;
+    font-weight: 500;
+    font-size: .95rem;
+    line-height: 1.35;
+}
+
+.hit time, .card time {
+    display: block;
+    margin-top: 5px;
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: .75rem;
+    color: #8ea3b8;
+}
+
+.lead {
+    display: block;
+    margin-top: 4px;
+    font-size: .75rem;
+    line-height: 1.35;
+    color: #d5e4f2;
+}
+
+main {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    container-type: inline-size;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 0 22px;
     text-align: center;
+    padding: 54px 52px 12px;
 }
 
-/* Тонкие линии сверху и снизу блока — «документальный» вид. */
-#main::before, #main::after {
-    content: '';
-    align-self: center;
-    width: min(320px, 62vw);
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(142, 20, 20, .55), transparent);
-    opacity: 0;
-    transition: opacity 1.2s var(--ease) .15s;
-}
-#main::before { margin-bottom: clamp(16px, 3.2vh, 38px); }
-#main::after  { margin-top: clamp(18px, 3.4vh, 40px); }
-body.on #main::before, body.on #main::after { opacity: 1; }
-
-/* Появление: только opacity + transform. Без filter: blur — он перерисовывал
-   крупные текстовые слои с размытием при каждой загрузке страницы. */
-.reveal { opacity: 0; transform: translateY(8px); }
-
-.kicker {
-    --d: .30s;
-    font-size: clamp(.62rem, 1.4vw, .82rem);
-    font-weight: 600;
-    letter-spacing: .62em;
-    text-indent: .62em;
-    text-transform: uppercase;
-    color: var(--dim);
-    text-shadow: 0 2px 14px rgba(0, 0, 0, .98);
-    transition: opacity .9s var(--ease) var(--d), transform .9s var(--ease) var(--d);
+.dossier {
+    width: min(980px, 100%);
+    padding: 0 12px;
 }
 
-.name {
-    --d: .55s;
-    margin-top: clamp(8px, 1.6vh, 18px);
-    font-size: clamp(1.35rem, 4.3vw, 2.5rem);
+#title {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: Unbounded, Manrope, sans-serif;
     font-weight: 700;
-    line-height: 1.1;
-    letter-spacing: .18em;
-    text-indent: .18em;
+    font-size: clamp(1.7rem, 9cqi, 4.6rem);
+    line-height: .92;
+    letter-spacing: -.03em;
     text-transform: uppercase;
-    color: var(--ink);
-    opacity: 0;
-    transition: opacity 1s var(--ease) var(--d), transform 1s var(--ease) var(--d);
+    text-shadow: 0 12px 40px rgba(0, 0, 0, .65);
 }
 
-/* Линия: анимируется scaleX вместо width, чтобы не вызывать layout каждый кадр. */
-.rule {
-    --d: .95s;
-    width: min(240px, 52vw);
-    height: 1px;
-    margin: clamp(16px, 2.8vh, 30px) 0 clamp(12px, 2.2vh, 24px);
-    background: linear-gradient(90deg, transparent, rgba(142, 20, 20, .9), transparent);
-    transform: scaleX(0);
-    transition: transform 1.3s var(--ease) var(--d);
-}
+#title-b { color: #ff3b3b; }
 
-#days {
-    --d: 1.05s;
-    position: relative;
-    font-size: clamp(4.2rem, 18vw, 11rem);
-    font-weight: 700;
-    line-height: .95;
-    letter-spacing: .01em;
-    font-variant-numeric: tabular-nums;
-    color: var(--ink);
-    text-shadow: 0 2px 30px rgba(0, 0, 0, .92);
-    transition: opacity .9s var(--ease) var(--d), transform .9s var(--ease) var(--d);
-}
-
-/* Тихое свечение под цифрой — отдельный слой, анимируется только opacity.
-   Раньше пульс менял text-shadow с размытием 130px на тексте до 13.5rem,
-   из-за чего каждую секунду перерисовывался огромный текстовый слой. */
-#days::after {
-    content: '';
-    position: absolute;
-    inset: -4% -4%;
-    z-index: -1;
-    border-radius: 50%;
-    background: radial-gradient(closest-side, rgba(142, 20, 20, .45), transparent 70%);
-    opacity: 0;
-}
-#days.tick::after { animation: glowPulse .6s var(--ease); }
-@keyframes glowPulse {
-    0%   { opacity: 0; }
-    35%  { opacity: .9; }
-    100% { opacity: 0; }
-}
-
-.dlabel {
-    --d: 1.3s;
-    margin-top: clamp(6px, 1.2vh, 12px);
-    font-size: clamp(.66rem, 1.6vw, 1rem);
-    font-weight: 600;
-    letter-spacing: .62em;
-    text-indent: .62em;
-    text-transform: uppercase;
-    color: var(--red);
-    text-shadow: 0 0 30px rgba(142, 20, 20, .55);
-    transition: opacity .9s var(--ease) var(--d), transform .9s var(--ease) var(--d);
-}
-
-.breakdown {
-    --d: 1.55s;
+.clock {
     display: flex;
     justify-content: center;
-    margin-top: clamp(18px, 3.4vh, 38px);
-    transition: opacity 1s var(--ease) var(--d), transform 1s var(--ease) var(--d);
+    align-items: flex-start;
+    margin-top: 26px;
 }
 
-.unit { position: relative; padding: 0 clamp(16px, 3.4vw, 42px); }
-.unit + .unit::before {
-    content: '';
+.cell { --gap: 16px; min-width: 4.6rem; padding: 0 var(--gap); }
+
+.num {
+    position: relative;
+    display: flex;
+    justify-content: center;
+}
+
+.sep {
     position: absolute;
-    left: 0; top: 16%; bottom: 16%;
-    width: 1px;
-    background: linear-gradient(to bottom, transparent, rgba(126, 127, 92, .55), transparent);
+    left: 0;
+    top: 50%;
+    transform: translate(calc(-50% - var(--gap)), -58%);
+    font-family: Unbounded, Manrope, sans-serif;
+    font-weight: 500;
+    font-size: clamp(1.8rem, 12cqi, 6.2rem);
+    line-height: 1;
+    color: #ff3b3b;
+    pointer-events: none;
 }
-.unit-v {
-    font-family: ui-monospace, 'Cascadia Mono', Consolas, 'Courier New', monospace;
-    font-size: clamp(.95rem, 2.2vw, 1.4rem);
-    font-weight: 600;
+
+.cell b {
+    display: block;
+    font-family: Unbounded, Manrope, sans-serif;
+    font-weight: 500;
+    font-size: clamp(1.8rem, 12cqi, 6.2rem);
     font-variant-numeric: tabular-nums;
-    color: #cfcdc0;
-    text-shadow: 0 2px 16px rgba(0, 0, 0, .9);
+    line-height: .85;
+    letter-spacing: -.04em;
+    color: #fff;
 }
-.unit-l {
+
+.cell > span {
+    display: block;
     margin-top: 8px;
-    font-size: clamp(.5rem, .9vw, .64rem);
-    font-weight: 600;
-    letter-spacing: .34em;
-    text-indent: .34em;
+    font-size: .62rem;
+    font-weight: 650;
+    letter-spacing: .16em;
     text-transform: uppercase;
-    color: var(--faint);
-    text-shadow: 0 2px 10px rgba(0, 0, 0, .98);
+    color: #8ea3b8;
 }
 
-#foot {
-    position: fixed;
-    left: 0; right: 0;
-    bottom: clamp(14px, 3vh, 30px);
-    z-index: 20;
-    text-align: center;
-    font-family: ui-monospace, 'Cascadia Mono', Consolas, 'Courier New', monospace;
-    font-size: clamp(.52rem, 1vw, .68rem);
-    letter-spacing: .3em;
-    text-indent: .3em;
+#remain { margin-top: 22px; }
+#remain[hidden] { display: none; }
+#remain span,
+#remain small {
+    display: block;
+    letter-spacing: .14em;
     text-transform: uppercase;
-    color: #67685c;
-    text-shadow: 0 2px 12px rgba(0, 0, 0, .95);
+    color: #8ea3b8;
+}
+#remain span { font-size: .68rem; font-weight: 700; }
+#remain b {
+    display: block;
+    margin: 6px 0 4px;
+    font-family: Unbounded, Manrope, sans-serif;
+    font-weight: 500;
+    font-size: clamp(1.5rem, 3vw, 2.4rem);
+    letter-spacing: -.03em;
+    color: #ff3b3b;
+}
+#remain small { font-size: .62rem; }
+
+.zones {
+    display: flex;
+    justify-content: center;
+    margin-top: 26px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 59, 59, .4);
 }
 
-/* Боковые служебные подписи убраны — по краям экрана ничего нет. */
-#visits, #hint { display: none; }
-
-body.on .reveal { opacity: 1; transform: none; }
-body.on .name { opacity: 1; transform: none; }
-body.on .rule { transform: scaleX(1); }
-
-@media (max-width: 560px) {
-    .unit { padding: 0 12px; }
-    .kicker { letter-spacing: .46em; text-indent: .46em; }
-    .name { letter-spacing: .12em; text-indent: .12em; }
+.zone {
+    padding: 0 22px;
+    background: none;
 }
-@media (max-height: 560px) {
-    .breakdown { margin-top: 12px; }
-    #main::before, #main::after { display: none; }
+
+.zone + .zone { border-left: 1px solid rgba(255, 255, 255, .12); }
+
+.zone strong {
+    display: block;
+    font-size: .64rem;
+    font-weight: 700;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: #8ea3b8;
+}
+
+.zone b {
+    display: block;
+    margin-top: 6px;
+    font-family: Unbounded, Manrope, sans-serif;
+    font-weight: 500;
+    font-size: clamp(1rem, 1.6vw, 1.35rem);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -.02em;
+}
+
+.zone.sib strong,
+.zone.sib b,
+.zone.sib small { color: #ff3b3b; }
+
+.zone small {
+    display: block;
+    margin-top: 4px;
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: .68rem;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: #8ea3b8;
+}
+
+.tools {
+    position: absolute;
+    top: 18px;
+    right: 22px;
+    z-index: 3;
+    display: flex;
+    gap: 18px;
+}
+
+#sound, #share {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #f3f6fb;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    font-size: .68rem;
+    font-weight: 700;
+}
+
+#sound[data-on="1"],
+#share[data-on="1"] { color: #ff3b3b; }
+#sound:focus-visible,
+#share:focus-visible,
+.rail:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+#share-pop {
+    position: absolute;
+    top: 28px;
+    right: 0;
+    z-index: 6;
+}
+
+#share-pop[hidden] { display: none; }
+
+#share-pop input {
+    width: min(280px, 70vw);
+    padding: 8px 10px;
+    border: 0;
+    background: #140406;
+    color: #fff;
+    font: 12px ui-monospace, Consolas, monospace;
+}
+
+.rail {
+    position: absolute;
+    top: 50%;
+    z-index: 4;
+    transform: translateY(-50%);
+    writing-mode: vertical-rl;
+    padding: 18px 11px;
+    border: 0;
+    background: #e10600;
+    color: #fff;
+    font-family: Unbounded, Manrope, sans-serif;
+    font-size: .68rem;
+    font-weight: 500;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+
+.rail-l { left: 0; }
+.rail-r { right: 0; }
+.rail[aria-expanded="true"] { background: #8d0c18; }
+
+@media (max-width: 760px) {
+    body { overflow: auto; }
+    #app {
+        position: relative;
+        min-height: 100%;
+        flex-direction: column;
+    }
+    .wall { display: none; }
+    .panel { height: auto; flex-basis: auto; width: 100%; max-height: 0; }
+    #feed .panel-in, #news .panel-in { width: 100%; }
+    html[data-feed="1"] #feed { flex-basis: auto; max-height: 70vh; border-top: 8px solid #e10600; }
+    html[data-news="1"] #news { flex-basis: auto; max-height: 80vh; border-top: 8px solid #e10600; }
+    main { min-height: 100vh; order: -1; padding: 58px 42px 16px; }
+    #title { font-size: 2rem; letter-spacing: -.03em; }
+    .cell { --gap: 10px; padding: 0 var(--gap); }
+}
+
+@media (max-height: 640px) and (min-width: 981px) {
+    #title { font-size: 1.6rem; }
+    .clock { margin-top: 12px; }
+    .cell b { font-size: 2.2rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    #bg, #smog, #grain { animation: none !important; }
-    .reveal { transition: none; }
-    .name { transition: none; }
-    #days.tick::after { animation: none; }
+    #snow { display: none; }
 }
 </style>
+<script>
+try {
+    var savedDrawers = JSON.parse(localStorage.getItem('igor_drawers_v1') || '{}');
+    document.documentElement.dataset.feed = savedDrawers.feed ? '1' : '0';
+    document.documentElement.dataset.news = savedDrawers.news ? '1' : '0';
+} catch (e) {
+    document.documentElement.dataset.feed = '0';
+    document.documentElement.dataset.news = '0';
+}
+</script>
 </head>
 <body>
 
 <div class="layer" id="bg"></div>
 <div class="layer" id="shade"></div>
-<div class="layer" id="smog"></div>
-
-<div id="main">
-    <div class="kicker reveal">СКОЛЬКО ДНЕЙ</div>
-    <div class="name">ИГОРЬ ТАМ</div>
-    <div class="rule"></div>
-    <div id="days" class="reveal">—</div>
-    <div class="dlabel reveal">ДНЕЙ</div>
-    <div class="breakdown reveal">
-        <div class="unit">
-            <div class="unit-v" id="hours">00</div>
-            <div class="unit-l">часов</div>
-        </div>
-        <div class="unit">
-            <div class="unit-v" id="minutes">00</div>
-            <div class="unit-l">минут</div>
-        </div>
-        <div class="unit">
-            <div class="unit-v" id="seconds">00</div>
-            <div class="unit-l">секунд</div>
-        </div>
-    </div>
-</div>
-
-<div id="foot">
-    <span id="date-info">ДАТА ПРИЗЫВА НЕ УКАЗАНА</span>
-</div>
-
 <canvas class="layer" id="snow"></canvas>
-<div class="layer" id="grain"></div>
-<div class="layer" id="vignette"></div>
 
-<!-- preload="none": файлы весят ~3.6 МБ. Раньше тянулись сразу при загрузке
-     и забирали канал и декодер, из-за чего появление страницы задерживалось. -->
+<div id="app">
+    <aside class="panel" id="feed">
+        <div class="panel-in">
+        <header>
+            <h2>Сколько видео Штефанова и Максима Каца пропускает Игорь</h2>
+            <div class="counts">
+                <a href="https://www.youtube.com/@alexandrshtefanov" target="_blank" rel="noopener">
+                    <b id="n-sh">0</b><em>Штефанов</em>
+                </a>
+                <a href="https://www.youtube.com/@Max_Katz" target="_blank" rel="noopener">
+                    <b id="n-katz">0</b><em>Кац</em>
+                </a>
+            </div>
+            <p class="note" id="missed-status">смотрим YouTube…</p>
+        </header>
+        <div class="tape" id="tape"></div>
+        </div>
+    </aside>
+    <div class="wall" id="wall-feed"></div>
+
+    <main>
+        <button type="button" class="rail rail-l" id="toggle-feed" aria-controls="feed" aria-expanded="false">Видео</button>
+        <button type="button" class="rail rail-r" id="toggle-news" aria-controls="news" aria-expanded="false">Новости</button>
+        <div class="tools">
+            <button type="button" id="share">Поделиться</button>
+            <button type="button" id="sound" data-on="0">Включить звук</button>
+        </div>
+        <div class="dossier">
+            <h1 id="title"><span id="title-a">До призыва</span><span id="title-b">Игоря</span></h1>
+            <div class="clock">
+                <div class="cell"><div class="num"><b id="days">00</b></div><span id="days-l">дней</span></div>
+                <div class="cell"><div class="num"><span class="sep">:</span><b id="hours">00</b></div><span id="hours-l">часов</span></div>
+                <div class="cell"><div class="num"><span class="sep">:</span><b id="minutes">00</b></div><span id="minutes-l">минут</span></div>
+                <div class="cell"><div class="num"><span class="sep">:</span><b id="seconds">00</b></div><span id="seconds-l">секунд</span></div>
+            </div>
+            <div id="remain" hidden>
+                <span id="remain-k">Осталось служить примерно</span>
+                <b id="remain-n">—</b>
+                <small id="remain-until">до 24 ноября 2027</small>
+            </div>
+            <div class="zones">
+                <div class="zone"><strong>Киев</strong><b id="z-kyiv">—</b></div>
+                <div class="zone"><strong>Москва</strong><b id="z-msk">—</b></div>
+                <div class="zone sib"><strong>Сибирь</strong><b id="z-sib">—</b><small>06:00, 24 ноября</small></div>
+            </div>
+        </div>
+    </main>
+
+    <div class="wall" id="wall-news"></div>
+    <aside class="panel" id="news">
+        <div class="panel-in">
+        <header>
+            <div class="switch" id="news-switch">
+                <button type="button" data-feed="sib" aria-selected="true">Сибирь</button>
+                <button type="button" data-feed="kremlin">Кремль</button>
+                <button type="button" data-feed="fed">Федеральные</button>
+                <button type="button" data-feed="ua">Украина</button>
+            </div>
+            <h2><a id="news-title" href="https://www.interfax-russia.ru/siberia/news" target="_blank" rel="noopener">Новости Сибири</a></h2>
+            <p class="note"><a id="news-source" href="https://www.interfax-russia.ru/" target="_blank" rel="noopener">Интерфакс</a></p>
+            <p class="note" id="news-status">смотрим ленту…</p>
+        </header>
+        <div class="tape" id="wire"></div>
+        </div>
+    </aside>
+</div>
+
 <audio id="music" preload="none" loop playsinline></audio>
 <audio id="ambient" preload="none" loop playsinline></audio>
 
@@ -358,355 +588,916 @@ body.on .rule { transform: scaleX(1); }
 (() => {
     'use strict';
 
-    const CONFIG = {
-        startDate: '',
-        musicVol: .55,
-        ambientVol: .17
-    };
+    // 24 ноября 2026, 06:00 по Сибири (UTC+7). Срок срочной службы — примерно год.
+    const DRAFT = new Date('2026-11-24T06:00:00+07:00');
+    const DRAFT_MS = DRAFT.getTime();
+    const END = new Date('2027-11-24T06:00:00+07:00');
+    const END_MS = END.getTime();
+    const SIBERIA = 'Asia/Krasnoyarsk';
 
-    const DATE_KEY = 'igor_start_v1';
-
-    // События, по которым повторно пробуем включить звук, если браузер заблокировал
-    // автозапуск. Список широкий намеренно: подойдёт любое касание страницы, включая
-    // прокрутку и движение мыши — так звук начинается практически сразу.
-    const UNLOCK_EVENTS = [
-        'pointerdown', 'pointerup', 'click', 'dblclick', 'contextmenu',
-        'keydown', 'touchstart', 'wheel', 'scroll',
-        'pointermove', 'mousemove', 'focus'
+    const CHANNELS = [
+        { key: 'shtefanov', name: 'Штефанов', id: 'UCVVNJJXC7TQgPpAjQdgrqNw', node: 'n-sh' },
+        { key: 'katz', name: 'Кац', id: 'UCUGfDbfRIx51kJGGHIFo8Rw', node: 'n-katz' }
     ];
-    // Пауза между попытками, чтобы mousemove не генерировал десятки play() в секунду.
-    const RETRY_MS = 1200;
+
+    const ZONES = [
+        { id: 'z-kyiv', tz: 'Europe/Kyiv' },
+        { id: 'z-msk', tz: 'Europe/Moscow' },
+        { id: 'z-sib', tz: SIBERIA }
+    ];
+
+    const STORE_KEY = 'igor_missed_v1';
+    function bingRss(query) {
+        return 'https://www.bing.com/news/search?q=' + encodeURIComponent(query) + '&format=rss&setlang=ru';
+    }
+    const FEEDS = [
+        {
+            id: 'sib',
+            label: 'Сибирь',
+            title: 'Новости Сибири',
+            href: 'https://www.interfax-russia.ru/siberia/news',
+            source: 'Интерфакс',
+            sourceHref: 'https://www.interfax-russia.ru/',
+            rss: bingRss('site:interfax-russia.ru/siberia'),
+            accept: url => /interfax-russia\.ru\/siberia\//.test(url),
+            strip: /\s+-\s+Интерфакс Россия\s*$/i,
+            tag: 'Сибирь',
+            fallback: 'Сибирь',
+            places: [
+                ['Новоалтайск', 'Новоалтайск'],
+                ['Новосибир', 'Новосибирск'],
+                ['Искитим', 'Искитим'],
+                ['Кемеров', 'Кемерово'],
+                ['Томск', 'Томск'],
+                ['Омск', 'Омск'],
+                ['Краснояр', 'Красноярск'],
+                ['Эвенк', 'Эвенкия'],
+                ['Иркут', 'Иркутск'],
+                ['Барнаул', 'Барнаул'],
+                ['Алтай', 'Алтайский_край'],
+                ['Байкал', 'Байкал'],
+                ['Кузбасс', 'Кемеровская_область']
+            ]
+        },
+        {
+            id: 'kremlin',
+            label: 'Кремль',
+            title: 'Новости Кремля',
+            href: 'http://kremlin.ru/events/president/news',
+            source: 'Kremlin.ru',
+            sourceHref: 'http://www.kremlin.ru/',
+            rss: bingRss('site:kremlin.ru'),
+            accept: url => /kremlin\.ru\//.test(url),
+            strip: null,
+            tag: 'Кремль',
+            fallback: 'Московский_Кремль',
+            places: [
+                ['Кремл', 'Московский_Кремль'],
+                ['Сочи', 'Сочи'],
+                ['Петербург', 'Санкт-Петербург'],
+                ['Москв', 'Москва']
+            ]
+        },
+        {
+            id: 'fed',
+            label: 'Федеральные',
+            title: 'Федеральные новости',
+            href: 'https://www.interfax.ru/',
+            source: 'Интерфакс',
+            sourceHref: 'https://www.interfax.ru/',
+            rss: bingRss('site:interfax.ru'),
+            accept: url => /^https?:\/\/(www\.)?interfax\.ru\//.test(url),
+            strip: /\s*[-–—]\s*Интерфакс.*$/i,
+            tag: 'Россия',
+            fallback: 'Москва',
+            places: [
+                ['Петербург', 'Санкт-Петербург'],
+                ['Москв', 'Москва'],
+                ['Казан', 'Казань'],
+                ['Сочи', 'Сочи'],
+                ['Крым', 'Крым'],
+                ['Калининград', 'Калининград'],
+                ['Владивосток', 'Владивосток'],
+                ['Новосибир', 'Новосибирск']
+            ]
+        },
+        {
+            id: 'ua',
+            label: 'Украина',
+            title: 'Новости Украины',
+            href: 'https://www.pravda.com.ua/rus/',
+            source: 'Украинская правда',
+            sourceHref: 'https://www.pravda.com.ua/rus/',
+            rss: 'https://www.pravda.com.ua/rus/rss/',
+            accept: url => /pravda\.com\.ua\//.test(url),
+            strip: null,
+            tag: 'Украина',
+            fallback: 'Киев',
+            places: [
+                ['Харьков', 'Харьков'],
+                ['Одес', 'Одесса'],
+                ['Львов', 'Львов'],
+                ['Днепр', 'Днепр_(город)'],
+                ['Запорож', 'Запорожье'],
+                ['Херсон', 'Херсон'],
+                ['Николаев', 'Николаев'],
+                ['Полтав', 'Полтава'],
+                ['Чернигов', 'Чернигов'],
+                ['Сумы', 'Сумы'],
+                ['Мариупол', 'Мариуполь'],
+                ['Донецк', 'Донецк'],
+                ['Луганск', 'Луганск'],
+                ['Крым', 'Крым'],
+                ['Киев', 'Киев']
+            ]
+        }
+    ];
+    let newsId = 'sib';
+    try {
+        const savedNews = localStorage.getItem('igor_news_v1');
+        if (FEEDS.some(feed => feed.id === savedNews)) newsId = savedNews;
+    } catch (e) {}
+    let newsGen = 0;
+    const NEWS_CAP = 36;
+    const NEWS_KEY = 'igor_news_bag_v1';
+    function loadNewsBags() {
+        try {
+            const raw = JSON.parse(localStorage.getItem(NEWS_KEY) || '{}');
+            if (raw && typeof raw === 'object') return raw;
+        } catch (e) {}
+        return {};
+    }
+    const newsBags = loadNewsBags();
+
+    function newsList(id) {
+        return Object.values(newsBags[id] || {})
+            .filter(item => item && item.title && item.url && Number.isFinite(item.t))
+            .sort((a, b) => b.t - a.t);
+    }
+
+    function saveNewsBags() {
+        try { localStorage.setItem(NEWS_KEY, JSON.stringify(newsBags)); } catch (e) {}
+    }
+
+    function rememberNews(id, fresh) {
+        const bag = newsBags[id] || (newsBags[id] = {});
+        fresh.forEach(item => {
+            const prev = bag[item.url] || {};
+            bag[item.url] = {
+                title: item.title,
+                url: item.url,
+                t: item.t,
+                lead: item.lead || prev.lead || '',
+                thumb: item.thumb || prev.thumb || ''
+            };
+        });
+        const list = Object.values(bag).sort((a, b) => b.t - a.t).slice(0, NEWS_CAP);
+        newsBags[id] = Object.fromEntries(list.map(item => [item.url, item]));
+        saveNewsBags();
+        return newsList(id);
+    }
 
     const $ = id => document.getElementById(id);
-    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const zoneFmt = Object.fromEntries(ZONES.map(z => [z.tz, new Intl.DateTimeFormat('ru-RU', {
+        timeZone: z.tz, hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23'
+    })]));
+    const stampFmt = new Intl.DateTimeFormat('ru-RU', {
+        timeZone: SIBERIA, day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+    });
+
+    function plural(n, one, few, many) {
+        const m10 = n % 10, m100 = n % 100;
+        if (m10 === 1 && m100 !== 11) return one;
+        if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
+        return many;
+    }
+
+    const pad = n => String(n).padStart(2, '0');
+
+    function setText(el, value) {
+        if (el && el.textContent !== value) el.textContent = value;
+    }
+
+    function esc(s) {
+        return String(s).replace(/[&<>"']/g, ch => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[ch]));
+    }
+
+    function tick() {
+        let diff = DRAFT_MS - Date.now();
+        const serving = diff <= 0;
+        if (serving) diff = -diff;
+
+        const days = Math.floor(diff / 86400000);
+        const hours = Math.floor(diff % 86400000 / 3600000);
+        const minutes = Math.floor(diff % 3600000 / 60000);
+        const seconds = Math.floor(diff % 60000 / 1000);
+
+        setText($('days'), pad(days));
+        setText($('hours'), pad(hours));
+        setText($('minutes'), pad(minutes));
+        setText($('seconds'), pad(seconds));
+        setText($('days-l'), plural(days, 'день', 'дня', 'дней'));
+        setText($('hours-l'), plural(hours, 'час', 'часа', 'часов'));
+        setText($('minutes-l'), plural(minutes, 'минута', 'минуты', 'минут'));
+        setText($('seconds-l'), plural(seconds, 'секунда', 'секунды', 'секунд'));
+        setText($('title-a'), serving ? 'Игоря' : 'До призыва');
+        setText($('title-b'), serving ? 'забрали' : 'Игоря');
+        $('title-b').hidden = false;
+
+        const remain = $('remain');
+        if (serving) {
+            remain.hidden = false;
+            const left = END_MS - Date.now();
+            if (left <= 0) {
+                $('remain-k').hidden = true;
+                $('remain-until').hidden = true;
+                setText($('remain-n'), 'Срок примерно вышел');
+            } else {
+                const leftDays = Math.ceil(left / 86400000);
+                $('remain-k').hidden = false;
+                $('remain-until').hidden = false;
+                setText($('remain-k'), 'Осталось служить примерно');
+                setText($('remain-n'), leftDays + ' ' + plural(leftDays, 'день', 'дня', 'дней'));
+            }
+        } else {
+            remain.hidden = true;
+        }
+
+        const now = new Date();
+        ZONES.forEach(z => setText($(z.id), zoneFmt[z.tz].format(now)));
+
+        document.title = serving
+            ? days + ' ' + plural(days, 'день', 'дня', 'дней') + ' · Игоря забрали'
+            : pad(hours) + ':' + pad(minutes) + ':' + pad(seconds) + ' · До призыва Игоря';
+    }
 
     const music = $('music');
     const ambient = $('ambient');
-    const dlabel = document.querySelector('.dlabel');
-
+    const soundBtn = $('sound');
     let audioOn = false;
     let muted = false;
-    let unlocking = false;
-    let attempts = 0;
-    // -Infinity, а не 0: performance.now() отсчитывается от начала навигации, то есть
-    // сразу после загрузки он маленький. При lastTry = 0 первый вызов startAudio()
-    // попадал под троттл и выходил, не успев задать src.
-    let lastTry = -Infinity;
 
-    // Громкость выставляется сразу и окончательно. Раньше она поднималась ramp-ом
-    // после снятия mute; раз мута больше нет, мягкий вход не нужен.
-    music.volume = CONFIG.musicVol;
-    ambient.volume = CONFIG.ambientVol;
-
-    function detachUnlock() {
-        UNLOCK_EVENTS.forEach(e => window.removeEventListener(e, tryStart, true));
+    function soundLabel() {
+        soundBtn.textContent = audioOn && !muted ? 'Выключить звук' : 'Включить звук';
+        soundBtn.dataset.on = audioOn && !muted ? '1' : '0';
+        soundBtn.hidden = false;
     }
 
-    // Страховка на случай, если браузер запретил автозапуск: первое же касание
-    // страницы (в т.ч. движение мыши или прокрутка) включает звук.
-    function armUnlock() {
-        if (unlocking || audioOn) return;
-        unlocking = true;
-        UNLOCK_EVENTS.forEach(e =>
-            window.addEventListener(e, tryStart, { capture: true, passive: true, once: true }));
-    }
+    let starting = false;
 
-    function tryStart() {
-        unlocking = false;
-        startAudio();
-    }
-
-    // Звук включается напрямую, без mute: ни одного переключения muted в коде нет.
-    // Громкость выставлена заранее, поэтому как только браузер разрешит play() —
-    // сразу слышно.
-    //
-    // Если браузер запретил автозапуск со звуком, play() отклоняется с
-    // NotAllowedError, и мы просто повторяем попытку на первом же касании.
-    // Никакого «стартовать в mute и потом снять» — Chrome на таком снятии
-    // останавливает элемент (developer.chrome.com/blog/autoplay-2), т.е. схема
-    // всё равно не работает и только добавляет задержку.
     async function startAudio() {
-        if (audioOn || unlocking) return;
-        const now = performance.now();
-        // Попытку отклонили по троттлу — слушатели уже израсходованы (once),
-        // поэтому вешаем их заново, иначе звук не включится никогда.
-        if (now - lastTry < RETRY_MS) { armUnlock(); return; }
-        lastTry = now;
-        unlocking = true;
-
-        // src задаём один раз: повторное присваивание того же URL перезапускает
-        // загрузку и сбрасывает currentTime, а попыток может быть много.
+        if (audioOn || starting) return;
+        starting = true;
+        music.volume = .55;
+        ambient.volume = .17;
         if (!music.getAttribute('src')) music.src = 'Хор Иоанна Дамаскина - Конец Былины.mp3';
         if (!ambient.getAttribute('src')) ambient.src = 'snowstorm.mp3';
-        try { music.currentTime = 0; } catch (e) {}
-
-        const started = await music.play().then(() => true, () => false);
-        unlocking = false;
-
-        if (!started) {
-            if (++attempts <= 60) armUnlock();
+        try {
+            await music.play();
+        } catch (e) {
+            starting = false;
+            soundLabel();
             return;
         }
-
+        ambient.play().catch(() => {});
         audioOn = true;
-        attempts = 0;
-        detachUnlock();
-        ambient.play().catch(() => {});
+        muted = false;
+        starting = false;
+        soundLabel();
     }
 
-    function resume() {
-        if (!audioOn) return;
-        music.play().catch(() => {});
-        ambient.play().catch(() => {});
-    }
-
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) resume(); });
-    window.addEventListener('pageshow', resume);
-
-    // Ручная заглушка по клавише M. Это осознанное действие пользователя, а не часть
-    // механики автозапуска: громкость не трогаем, mute не трогаем при старте.
-    window.addEventListener('keydown', e => {
-        if (e.code !== 'KeyM') return;
+    soundBtn.addEventListener('click', async () => {
+        if (!audioOn) {
+            await startAudio();
+            return;
+        }
         muted = !muted;
         music.muted = ambient.muted = muted;
+        if (!muted) {
+            music.play().catch(() => {});
+            ambient.play().catch(() => {});
+        }
+        soundLabel();
+    });
+
+    const shareBtn = $('share');
+    function copied() {
+        shareBtn.textContent = 'Ссылка скопирована';
+        shareBtn.dataset.on = '1';
+        setTimeout(() => {
+            shareBtn.textContent = 'Поделиться';
+            shareBtn.dataset.on = '0';
+        }, 1600);
+    }
+    shareBtn.addEventListener('click', async () => {
+        const url = location.href.replace(/[?#].*$/, '');
+        const data = { title: 'До призыва Игоря', text: 'До призыва Игоря', url };
+        if (navigator.share) {
+            try {
+                await navigator.share(data);
+                return;
+            } catch (e) {
+                if (e.name === 'AbortError') return;
+            }
+        }
+        try {
+            await navigator.clipboard.writeText(url);
+            copied();
+            return;
+        } catch (e) {}
+        const ta = document.createElement('textarea');
+        ta.value = url;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.left = '-999px';
+        document.body.appendChild(ta);
+        ta.select();
+        let ok = false;
+        try { ok = document.execCommand('copy'); } catch (e) {}
+        ta.remove();
+        if (ok) copied();
+        else showLink(url);
+    });
+
+    function showLink(url) {
+        let box = $('share-pop');
+        if (!box) {
+            box = document.createElement('div');
+            box.id = 'share-pop';
+            box.innerHTML = '<input type="text" readonly aria-label="Ссылка">';
+            shareBtn.parentElement.appendChild(box);
+            box.querySelector('input').addEventListener('focus', function () { this.select(); });
+        }
+        const input = box.querySelector('input');
+        input.value = url;
+        box.hidden = false;
+        input.focus();
+        input.select();
+        shareBtn.textContent = 'Вот ссылка';
+        shareBtn.dataset.on = '1';
+    }
+
+    function paintDrawer(name) {
+        const open = document.documentElement.dataset[name] === '1';
+        const btn = $(name === 'feed' ? 'toggle-feed' : 'toggle-news');
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        btn.textContent = open ? 'Закрыть' : (name === 'feed' ? 'Видео' : 'Новости');
+    }
+
+    function toggleDrawer(name) {
+        const open = document.documentElement.dataset[name] === '1';
+        document.documentElement.dataset[name] = open ? '0' : '1';
+        paintDrawer(name);
+        try {
+            localStorage.setItem('igor_drawers_v1', JSON.stringify({
+                feed: document.documentElement.dataset.feed === '1',
+                news: document.documentElement.dataset.news === '1'
+            }));
+        } catch (e) {}
+        if (name === 'news' && document.documentElement.dataset.news === '1') refreshNews();
+    }
+
+    paintDrawer('feed');
+    paintDrawer('news');
+    $('toggle-feed').addEventListener('click', () => toggleDrawer('feed'));
+    $('toggle-news').addEventListener('click', () => toggleDrawer('news'));
+
+    function armGesture() {
+        const go = (e) => {
+            if (e.target && e.target.closest && e.target.closest('#sound')) return;
+            startAudio();
+        };
+        window.addEventListener('pointerdown', go, { capture: true, once: true });
+        window.addEventListener('keydown', go, { capture: true, once: true });
+    }
+
+    startAudio().then(() => { if (!audioOn) armGesture(); });
+
+    document.addEventListener('visibilitychange', () => {
+        if (!audioOn || muted || document.hidden) return;
+        music.play().catch(() => {});
+        ambient.play().catch(() => {});
+    });
+
+    function loadStore() {
+        try {
+            const raw = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
+            return raw && typeof raw === 'object' ? raw : {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function saveStore(store) {
+        try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch (e) {}
+    }
+
+    const store = loadStore();
+    const latest = { shtefanov: [], katz: [] };
+
+    function countOf(key) {
+        const bag = store[key];
+        return bag ? Object.keys(bag).length : 0;
+    }
+
+    function videoId(item) {
+        const link = String(item.link || item.guid || '');
+        const match = link.match(/[?&]v=([\w-]{11})/) || link.match(/([\w-]{11})/);
+        return match ? match[1] : '';
+    }
+
+    function publishedMs(item) {
+        const raw = String(item.pubDate || '').trim();
+        if (!raw) return NaN;
+        if (/[+-]\d{2}:?\d{2}$/.test(raw) || /[a-z]/i.test(raw)) {
+            const zoned = Date.parse(raw);
+            if (Number.isFinite(zoned)) return zoned;
+        }
+        return Date.parse(raw.includes('T') ? raw : raw.replace(' ', 'T') + 'Z');
+    }
+
+    function renderMissed(status) {
+        const before = Date.now() < DRAFT_MS;
+        CHANNELS.forEach(ch => setText($(ch.node), before ? '0' : String(countOf(ch.key))));
+        if (status) setText($('missed-status'), status);
+    }
+
+    function renderTape() {
+        const rows = [];
+        CHANNELS.forEach(ch => {
+            (latest[ch.key] || []).forEach(v => {
+                if (v.t >= DRAFT_MS) rows.push({ who: ch.name, ...v });
+            });
+        });
+        rows.sort((a, b) => b.t - a.t);
+        const html = rows.slice(0, 12).map(v =>
+            '<a class="hit" href="' + esc(v.url) + '" target="_blank" rel="noopener">'
+            + '<span class="pic"' + (v.thumb ? ' style="background-image:url(\'' + esc(v.thumb) + '\')"' : '') + '></span>'
+            + '<span class="body"><i>' + esc(v.who) + '</i>'
+            + '<b>' + esc(v.title) + '</b>'
+            + '<time>' + esc(stampFmt.format(v.t)) + '</time></span>'
+            + '</a>'
+        ).join('');
+        const tape = $('tape');
+        if (tape.dataset.html !== html) {
+            tape.dataset.html = html;
+            tape.innerHTML = html || '<p class="note" style="padding:12px 16px">Пока пусто. Сюда попадут ролики с утра 24 ноября.</p>';
+        }
+    }
+
+    function withTimeout(promise, ms) {
+        return new Promise((resolve, reject) => {
+            const timer = setTimeout(() => reject(new Error('timeout')), ms);
+            promise.then(value => {
+                clearTimeout(timer);
+                resolve(value);
+            }, err => {
+                clearTimeout(timer);
+                reject(err);
+            });
+        });
+    }
+
+    let jsonpN = 0;
+
+    function fetchJsonp(rss, cb) {
+        return new Promise((resolve, reject) => {
+            const src = 'https://api.rss2json.com/v1/api.json?rss_url='
+                + encodeURIComponent(rss) + '&count=20&callback=' + cb;
+            const script = document.createElement('script');
+            let done = false;
+            const timer = setTimeout(() => finish(new Error('timeout')), 8000);
+            function finish(err, data) {
+                if (done) return;
+                done = true;
+                clearTimeout(timer);
+                try { delete window[cb]; } catch (e) { window[cb] = undefined; }
+                script.remove();
+                if (err) reject(err);
+                else resolve(data);
+            }
+            window[cb] = data => finish(null, data);
+            script.onerror = () => finish(new Error('network'));
+            script.src = src;
+            document.head.appendChild(script);
+        });
+    }
+
+    function fetchFeed(channelId) {
+        return fetchJsonp(
+            'https://www.youtube.com/feeds/videos.xml?channel_id=' + channelId,
+            'igorYt_' + channelId.slice(2, 8)
+        );
+    }
+
+    let fetching = false;
+
+    async function refreshFeeds() {
+        if (fetching) return;
+        fetching = true;
+        let failed = 0;
+        await Promise.all(CHANNELS.map(async ch => {
+            try {
+                const data = await fetchFeed(ch.id);
+                if (!data || data.status !== 'ok' || !Array.isArray(data.items)) throw new Error('bad');
+                const bag = store[ch.key] || (store[ch.key] = {});
+                const rows = [];
+                data.items.forEach(item => {
+                    const id = videoId(item);
+                    const t = publishedMs(item);
+                    const title = String(item.title || '').trim();
+                    if (!id || !title || !Number.isFinite(t) || t > Date.now() + 60000) return;
+                    rows.push({
+                        title,
+                        t,
+                        url: 'https://www.youtube.com/watch?v=' + id,
+                        thumb: safeImg(item.thumbnail)
+                    });
+                    if (t >= DRAFT_MS) bag[id] = t;
+                });
+                latest[ch.key] = rows;
+            } catch (e) {
+                failed += 1;
+            }
+        }));
+        fetching = false;
+        renderTape();
+        if (failed === CHANNELS.length) {
+            renderMissed('сейчас не достучаться');
+            return;
+        }
+        saveStore(store);
+        renderMissed(Date.now() < DRAFT_MS ? 'пропуски с утра 24 ноября' : 'само обновляется');
+    }
+
+    function safeImg(url) {
+        try {
+            const u = new URL(String(url || '').trim().replace(/^http:/i, 'https:'));
+            if (u.protocol !== 'https:') return '';
+            const host = u.hostname;
+            if (/(^|\.)bing\.com$/.test(host) || /(^|\.)ytimg\.com$/.test(host) || /(^|\.)wikimedia\.org$/.test(host)) return u.href;
+        } catch (e) {}
+        return '';
+    }
+
+    function plain(text) {
+        return String(text || '')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .replace(/читать далее.*/i, '')
+            .trim();
+    }
+
+    function renderNews(items, feed) {
+        const html = items.map(item =>
+            '<a class="card" href="' + esc(item.url) + '" target="_blank" rel="noopener">'
+            + '<span class="pic"' + (item.thumb ? ' style="background-image:url(\'' + esc(item.thumb) + '\')"' : '') + '></span>'
+            + '<span class="body"><i>' + esc(feed.tag) + '</i><b>' + esc(item.title) + '</b>'
+            + (item.lead ? '<span class="lead">' + esc(item.lead) + '</span>' : '')
+            + '<time>' + esc(stampFmt.format(item.t)) + '</time></span></a>'
+        ).join('');
+        const wire = $('wire');
+        wire.dataset.html = html;
+        wire.innerHTML = html + '<p class="note more">новые сами появляются сверху, старые остаются ниже</p>';
+    }
+
+    function fetchRaw(url, cb) {
+        return new Promise((resolve, reject) => {
+            const src = 'https://api.allorigins.win/get?callback=' + cb + '&url=' + encodeURIComponent(url);
+            const script = document.createElement('script');
+            let done = false;
+            const timer = setTimeout(() => finish(new Error('timeout')), 9000);
+            function finish(err, data) {
+                if (done) return;
+                done = true;
+                clearTimeout(timer);
+                try { delete window[cb]; } catch (e) { window[cb] = undefined; }
+                script.remove();
+                if (err) reject(err);
+                else resolve(data);
+            }
+            window[cb] = data => finish(null, data);
+            script.onerror = () => finish(new Error('network'));
+            script.src = src;
+            document.head.appendChild(script);
+        });
+    }
+
+    function imageFrom(node) {
+        const tags = node.getElementsByTagName('*');
+        for (let i = 0; i < tags.length; i++) {
+            if (String(tags[i].localName || '').toLowerCase() !== 'image') continue;
+            const text = tags[i].textContent.trim();
+            if (/^https?:\/\//i.test(text)) return safeImg(text);
+        }
+        return '';
+    }
+
+    function storyUrl(link, accept) {
+        let href = String(link || '').trim();
+        try {
+            const inner = new URL(href).searchParams.get('url');
+            if (inner) href = inner;
+        } catch (e) {}
+        href = href.replace(/^http:\/\//i, 'https://');
+        return accept(href) ? href : '';
+    }
+
+    function cleanTitle(feed, title) {
+        const text = String(title || '').trim();
+        return feed.strip ? text.replace(feed.strip, '').trim() : text;
+    }
+
+    function feedById(id) {
+        return FEEDS.find(feed => feed.id === id) || FEEDS[0];
+    }
+
+    function paintFeed(feed) {
+        const title = $('news-title');
+        title.textContent = feed.title;
+        title.href = feed.href;
+        const source = $('news-source');
+        source.textContent = feed.source;
+        source.href = feed.sourceHref;
+        document.querySelectorAll('#news-switch button').forEach(btn => {
+            btn.setAttribute('aria-selected', btn.dataset.feed === feed.id ? 'true' : 'false');
+        });
+    }
+
+    const summaryCache = {};
+    const searchCache = {};
+
+    async function wikiSummary(page) {
+        if (summaryCache[page] !== undefined) return summaryCache[page];
+        try {
+            const res = await withTimeout(fetch('https://ru.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(page)), 4000);
+            const data = await res.json();
+            summaryCache[page] = safeImg(data.thumbnail && data.thumbnail.source);
+        } catch (e) {
+            summaryCache[page] = '';
+        }
+        return summaryCache[page];
+    }
+
+    async function wikiSearch(title) {
+        const key = title.slice(0, 120);
+        if (searchCache[key]) return searchCache[key];
+        try {
+            const endpoint = 'https://ru.wikipedia.org/w/api.php?action=query&format=json&origin=*'
+                + '&generator=search&gsrlimit=3&gsrnamespace=0&prop=pageimages&piprop=thumbnail&pithumbsize=640&pilimit=3&gsrsearch='
+                + encodeURIComponent(key);
+            const data = await (await withTimeout(fetch(endpoint), 4000)).json();
+            const pages = data.query && data.query.pages ? Object.values(data.query.pages) : [];
+            pages.sort((a, b) => (a.index || 0) - (b.index || 0));
+            searchCache[key] = pages.map(page => safeImg(page.thumbnail && page.thumbnail.source)).filter(Boolean);
+        } catch (e) {
+            searchCache[key] = [];
+        }
+        return searchCache[key];
+    }
+
+    async function assignThumbs(items, feed) {
+        const used = new Set(items.map(item => item.thumb).filter(Boolean));
+        const pending = items.filter(item => !item.thumb);
+        for (let i = 0; i < pending.length; i += 4) {
+            const chunk = pending.slice(i, i + 4);
+            await Promise.all(chunk.map(async item => {
+                const found = feed.places.find(([word]) => item.title.includes(word));
+                const known = found ? await wikiSummary(found[1]) : '';
+                item._options = known ? [known] : await wikiSearch(item.title);
+            }));
+            chunk.forEach(item => {
+                const options = item._options || [];
+                item.thumb = options.find(url => !used.has(url)) || options[0] || '';
+                delete item._options;
+                if (item.thumb) used.add(item.thumb);
+            });
+        }
+    }
+
+    function packNews(list) {
+        return list.filter(item => item.title && item.url && Number.isFinite(item.t))
+            .sort((a, b) => b.t - a.t)
+            .slice(0, 20);
+    }
+
+    function itemsFromXml(xml, feed) {
+        const doc = new DOMParser().parseFromString(xml, 'text/xml');
+        if (doc.querySelector('parsererror')) return [];
+        return [...doc.querySelectorAll('item')].map(node => ({
+            title: cleanTitle(feed, node.querySelector('title')?.textContent || ''),
+            url: storyUrl(node.querySelector('link')?.textContent || '', feed.accept),
+            t: Date.parse(node.querySelector('pubDate')?.textContent || ''),
+            thumb: imageFrom(node),
+            lead: plain(node.querySelector('description')?.textContent || '').slice(0, 110)
+        }));
+    }
+
+    function itemsFromJson(feed, data) {
+        if (!data || data.status !== 'ok' || !Array.isArray(data.items)) return [];
+        return packNews(data.items.map(item => ({
+            title: cleanTitle(feed, item.title),
+            url: storyUrl(item.link, feed.accept),
+            t: publishedMs(item),
+            thumb: safeImg(item.thumbnail || (item.enclosure && item.enclosure.link)),
+            lead: plain(item.description).slice(0, 110)
+        })));
+    }
+
+    function fetchFeedItems(feed) {
+        return withTimeout(fetchJsonp(feed.rss, 'igorNews_' + feed.id + '_' + (++jsonpN)), 8000)
+            .then(data => itemsFromJson(feed, data));
+    }
+
+    let thumbToken = 0;
+
+    function applyPic(item) {
+        if (!item.thumb) return;
+        const cards = document.querySelectorAll('#wire .card');
+        for (let i = 0; i < cards.length; i++) {
+            if (cards[i].href !== item.url) continue;
+            const pic = cards[i].querySelector('.pic');
+            if (pic) pic.style.backgroundImage = "url('" + item.thumb.replace(/'/g, '') + "')";
+        }
+    }
+
+    function paintThumbs(feed, items) {
+        const token = ++thumbToken;
+        const missing = items.filter(item => !item.thumb);
+        const run = async () => {
+            for (let i = 0; i < missing.length; i += 4) {
+                if (token !== thumbToken) return;
+                await assignThumbs(missing.slice(i, i + 4), feed);
+                if (token !== thumbToken) return;
+                saveNewsBags();
+                if (feedById(newsId).id !== feed.id) continue;
+                missing.slice(i, i + 4).forEach(applyPic);
+            }
+        };
+        run();
+    }
+
+    let warming = false;
+
+    async function warmOthers() {
+        if (warming) return;
+        warming = true;
+        let failed = false;
+        for (let i = 0; i < FEEDS.length; i++) {
+            const feed = FEEDS[i];
+            if (newsList(feed.id).length >= 5) continue;
+            try {
+                const items = await fetchFeedItems(feed);
+                if (!items.length) throw new Error('empty');
+                const list = rememberNews(feed.id, items);
+                if (feed.id === newsId) {
+                    renderNews(list, feed);
+                    setText($('news-status'), 'лента сама обновляется');
+                    paintThumbs(feed, list);
+                }
+            } catch (e) {
+                failed = true;
+            }
+        }
+        warming = false;
+        if (failed) setTimeout(warmOthers, 12000);
+    }
+
+    async function refreshNews() {
+        const gen = ++newsGen;
+        const feed = feedById(newsId);
+        paintFeed(feed);
+        const known = newsList(feed.id);
+        if (known.length) {
+            renderNews(known, feed);
+            setText($('news-status'), 'лента сама обновляется');
+            paintThumbs(feed, known);
+        }
+        try {
+            const items = await fetchFeedItems(feed);
+            if (gen !== newsGen) return;
+            const list = items.length ? rememberNews(feed.id, items) : newsList(feed.id);
+            if (!list.length) throw new Error('empty');
+            if (feedById(newsId).id !== feed.id) return;
+            renderNews(list, feed);
+            setText($('news-status'), 'лента сама обновляется');
+            paintThumbs(feed, list);
+        } catch (e) {
+            if (gen !== newsGen) return;
+            if (!newsList(feed.id).length) setText($('news-status'), 'лента сейчас не открылась');
+        }
+        warmOthers();
+    }
+
+    $('news-switch').addEventListener('click', event => {
+        const btn = event.target.closest('button');
+        if (!btn || btn.dataset.feed === newsId) return;
+        newsId = btn.dataset.feed;
+        try { localStorage.setItem('igor_news_v1', newsId); } catch (e) {}
+        const feed = feedById(newsId);
+        paintFeed(feed);
+        const saved = newsList(newsId);
+        if (saved.length) {
+            renderNews(saved, feed);
+            setText($('news-status'), 'лента сама обновляется');
+        } else {
+            $('wire').dataset.html = '';
+            $('wire').innerHTML = '';
+            setText($('news-status'), 'смотрим ленту…');
+        }
+        refreshNews();
+    });
+
+    renderMissed('смотрим YouTube…');
+    refreshFeeds();
+    refreshNews();
+    setInterval(refreshFeeds, 10 * 60 * 1000);
+    setInterval(refreshNews, 3 * 60 * 1000);
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) return;
+        refreshFeeds();
+        refreshNews();
     });
 
     const canvas = $('snow');
-    const ctx = canvas.getContext('2d');
-
-    let W = 0, H = 0;
-    let flakes = [];
-    let wind = 0, windTarget = 0;
-
+    const ctx = canvas.getContext('2d', { alpha: true });
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let W = 0, H = 0, flakes = [], wind = 0, windTarget = 0, lastWind = 0;
     const TAU = Math.PI * 2;
-    const LEVELS = 5;
-    const LEVEL_R = [.45, .85, 1.35, 2.0, 2.9];
-    const LEVEL_A = ['rgba(214, 220, 226, .26)', 'rgba(218, 224, 230, .38)',
-                     'rgba(222, 228, 234, .52)', 'rgba(226, 232, 238, .66)',
-                     'rgba(230, 236, 242, .8)'];
-    const HALO_A = [.13];
-    const buckets = Array.from({ length: LEVELS }, () => []);
-
-    const glow = document.createElement('canvas');
-    glow.width = glow.height = 64;
-
-    (function buildGlow() {
-        const g = glow.getContext('2d');
-        const rad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
-        rad.addColorStop(0, 'rgba(232,236,240,1)');
-        rad.addColorStop(1, 'rgba(232,236,240,0)');
-        g.fillStyle = rad;
-        g.fillRect(0, 0, 64, 64);
-    })();
+    const LEVELS = 4;
+    const LEVEL_R = [.7, 1.3, 2.1, 3];
+    const LEVEL_A = [
+        'rgba(214, 220, 226, .28)',
+        'rgba(222, 228, 234, .48)',
+        'rgba(228, 234, 240, .66)',
+        'rgba(232, 238, 244, .82)'
+    ];
 
     function resize() {
         W = window.innerWidth;
         H = window.innerHeight;
         canvas.width = W;
         canvas.height = H;
-        buildSnow();
+        const count = reduced ? 0 : Math.min(160, Math.floor((W * H) / 16000));
+        flakes = Array.from({ length: count }, () => makeFlake(true));
     }
 
-    class Flake {
-        constructor(seed) { this.reset(seed); }
-
-        reset(seed) {
-            this.z = reduced ? Math.random() * .8 + .2 : Math.random();
-            this.lvl = Math.min(LEVELS - 1, (this.z * LEVELS) | 0);
-            this.x = Math.random() * (W + 300) - 150;
-            // Снег за пределами кадра не рисуется: маска #snow гасит края.
-            this.y = seed ? Math.random() * (H + 120) - 60 : -60 - Math.random() * 160;
-            this.v = this.z * 1.6 + .18;   // медленнее и спокойнее, чем раньше
-            this.wob = Math.random() * TAU;
-            this.wobV = Math.random() * .022 + .006;
-            this.wobA = Math.random() * 1.9 + .3;
-        }
-
-        update() {
-            this.wob += this.wobV;
-            this.y += this.v * (1 + Math.abs(wind) * .1);
-            this.x += Math.sin(this.wob) * this.wobA + wind * this.z * 1.6;
-
-            if (this.x > W + 120) this.x = -120;
-            if (this.x < -120) this.x = W + 120;
-            if (this.y > H + 80) this.reset(false);
-        }
+    function makeFlake(anywhere) {
+        const z = Math.random();
+        return {
+            z,
+            lvl: Math.min(LEVELS - 1, (z * LEVELS) | 0),
+            x: Math.random() * W,
+            y: anywhere ? Math.random() * H : -20,
+            v: z * 1.15 + .25,
+            wob: Math.random() * TAU,
+            wobV: Math.random() * .02 + .006,
+            wobA: Math.random() * 1.4 + .25
+        };
     }
 
-    // Плотность снега — единственный «рычаг» его производительности.
-    // Нужно ещё мягче: 5800 -> 7200. Больше снега: 5800 -> 4600.
-    function buildSnow() {
-        const density = reduced ? 9000 : 5800;
-        const count = Math.min(320, Math.floor((W * H) / density));
-        flakes = Array.from({ length: count }, () => new Flake(true));
-    }
-
-    let last = 0;
-
-    function loop(now) {
-        requestAnimationFrame(loop);
-        if (document.hidden) return;
-
-        if (now - last > 900) {
-            last = now;
-            windTarget = Math.random() < .3
-                ? (Math.random() < .5 ? -1 : 1) * (1.6 + Math.random() * 3)
-                : (Math.random() - .5) * 1;
+    function frame(now) {
+        requestAnimationFrame(frame);
+        if (document.hidden || !flakes.length) return;
+        if (now - lastWind > 1200) {
+            lastWind = now;
+            windTarget = (Math.random() - .5) * 1.4;
         }
-        wind += (windTarget - wind) * .008;
-
-        for (let L = 0; L < LEVELS; L++) buckets[L].length = 0;
-        for (let i = 0; i < flakes.length; i++) {
-            const f = flakes[i];
-            f.update();
-            buckets[f.lvl].push(f);
-        }
-
+        wind += (windTarget - wind) * .01;
         ctx.clearRect(0, 0, W, H);
-
         for (let L = 0; L < LEVELS; L++) {
-            const arr = buckets[L];
-            if (!arr.length) continue;
-
-            // Мягкое гало у самых близких снежинок.
-            if (L === LEVELS - 1) {
-                const halo = LEVEL_R[L] * 4.2;
-                ctx.globalAlpha = HALO_A[0];
-                for (let i = 0; i < arr.length; i++) {
-                    const f = arr[i];
-                    ctx.drawImage(glow, f.x - halo, f.y - halo, halo * 2, halo * 2);
-                }
-                ctx.globalAlpha = 1;
-            }
-
-            // Все точки уровня собираются в один path и заливаются одним fill().
-            const dot = LEVEL_R[L];
             ctx.beginPath();
-            for (let i = 0; i < arr.length; i++) {
-                const f = arr[i];
+            const dot = LEVEL_R[L];
+            for (let i = 0; i < flakes.length; i++) {
+                const f = flakes[i];
+                if (f.lvl !== L) continue;
+                f.wob += f.wobV;
+                f.y += f.v;
+                f.x += Math.sin(f.wob) * f.wobA + wind * f.z;
+                if (f.y > H + 12) {
+                    flakes[i] = makeFlake(false);
+                    continue;
+                }
                 ctx.moveTo(f.x + dot, f.y);
                 ctx.arc(f.x, f.y, dot, 0, TAU);
             }
             ctx.fillStyle = LEVEL_A[L];
             ctx.fill();
         }
-        ctx.globalAlpha = 1;
     }
 
-    let rt;
+    let resizeTimer;
     window.addEventListener('resize', () => {
-        clearTimeout(rt);
-        rt = setTimeout(resize, 150);
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(resize, 150);
     });
 
-    function validDate(s) {
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(String(s || ''))) return false;
-        const d = new Date(s);
-        return !isNaN(d) && s === d.toISOString().slice(0, 10);
-    }
-
-    function resolveStart() {
-        try {
-            const q = new URLSearchParams(location.search).get('date');
-            if (validDate(q)) {
-                localStorage.setItem(DATE_KEY, q);
-                return q;
-            }
-            const saved = localStorage.getItem(DATE_KEY);
-            if (validDate(saved)) return saved;
-        } catch (e) {}
-        return validDate(CONFIG.startDate) ? CONFIG.startDate : '';
-    }
-
-    const START = resolveStart();
-
-    function plural(n) {
-        const m10 = n % 10, m100 = n % 100;
-        if (m10 === 1 && m100 !== 11) return 'ДЕНЬ';
-        if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return 'ДНЯ';
-        return 'ДНЕЙ';
-    }
-
-    const pad = n => String(n).padStart(2, '0');
-    const fmt = d => d.toLocaleDateString('ru-RU',
-        { day: '2-digit', month: '2-digit', year: 'numeric' });
-
-    let lastSec = -1;
-
-    // Текст пишется в DOM только при реальном изменении — иначе каждую секунду
-    // принудительно менялись textContent у нескольких узлов и вызывался layout.
-    function setText(el, s) {
-        if (el.textContent !== s) el.textContent = s;
-    }
-
-    function pulse(el) {
-        if (reduced || !el.animate) return;
-        // Web Animations API вместо remove/offsetWidth/add — не вызывает reflow.
-        el.animate(
-            [{ transform: 'scale(1)' }, { transform: 'scale(1.025)', offset: .35 },
-             { transform: 'scale(1)' }],
-            { duration: 600, easing: 'cubic-bezier(.2,.7,.2,1)' }
-        );
-    }
-
-    function tick() {
-        const days = $('days');
-        const h = $('hours'), m = $('minutes'), s = $('seconds');
-
-        if (!START) {
-            setText(days, '—');
-            setText(dlabel, 'ДНЕЙ');
-            setText(h, '00'); setText(m, '00'); setText(s, '00');
-            return;
-        }
-
-        const start = new Date(START);
-
-        if (start > new Date()) {
-            setText(days, '—');
-            setText(dlabel, 'ДО ПРИЗЫВА');
-            setText(h, '00'); setText(m, '00'); setText(s, '00');
-            setText($('date-info'), 'ПРИЗЫВ: ' + fmt(start));
-            return;
-        }
-
-        const diff = Date.now() - start.getTime();
-        const d = Math.floor(diff / 86400000);
-        const hh = Math.floor(diff % 86400000 / 3600000);
-        const mm = Math.floor(diff % 3600000 / 60000);
-        const ss = Math.floor(diff % 60000 / 1000);
-
-        setText(days, String(d));
-        setText(dlabel, plural(d));
-        setText(h, pad(hh));
-        setText(m, pad(mm));
-        setText(s, pad(ss));
-        setText($('date-info'), 'ДАТА ПРИЗЫВА: ' + fmt(start));
-
-        if (ss !== lastSec) {
-            lastSec = ss;
-            pulse(days);
-        }
-    }
-
-    function start() {
-        resize();
-        tick();
-        setInterval(tick, 1000);
-        document.body.classList.add('on');
-        requestAnimationFrame(loop);
-    }
-
-    // Звук включается сразу при загрузке страницы, без ожидания клика.
-    startAudio();
-
-    // Старт по DOMContentLoaded, а не по load: раньше анимация появления ждала
-    // скачивания картинок и аудио, из-за чего страница выглядела «зависшей».
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', start, { once: true });
-    } else {
-        start();
-    }
+    tick();
+    setInterval(tick, 250);
+    resize();
+    requestAnimationFrame(frame);
 })();
 </script>
 </body>

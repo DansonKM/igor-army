@@ -264,7 +264,8 @@ main {
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 54px 52px 12px;
+    padding: 54px 52px 28px;
+    overflow: auto;
 }
 
 .dossier {
@@ -286,6 +287,16 @@ main {
 }
 
 #title-b { color: #ff3b3b; }
+
+#taken {
+    margin: 12px 0 0;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: #8ea3b8;
+}
+#taken[hidden] { display: none; }
 
 .clock {
     display: flex;
@@ -363,6 +374,85 @@ main {
     margin-top: 26px;
     padding-top: 16px;
     border-top: 1px solid rgba(255, 59, 59, .4);
+}
+
+.farewell {
+    width: min(640px, 100%);
+    margin: 22px auto 0;
+    padding-top: 12px;
+    border: 0;
+    border-top: 1px solid rgba(255, 59, 59, .28);
+    quotes: none;
+    text-align: left;
+}
+
+.farewell .kicker,
+.farewell .kicker-sub {
+    display: block;
+    font-family: Unbounded, Manrope, sans-serif;
+    font-size: .58rem;
+    font-weight: 500;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+
+.farewell .kicker { color: #ff3b3b; }
+.farewell .kicker-sub { margin-top: 4px; color: #8ea3b8; }
+
+.farewell .zones {
+    justify-content: flex-start;
+    margin-top: 8px;
+    padding-top: 8px;
+}
+
+.farewell .zone { padding: 0 14px 0 0; }
+.farewell .zone + .zone { padding-left: 14px; }
+
+.farewell .zone b {
+    margin-top: 2px;
+    font-size: .95rem;
+}
+
+.farewell .zone small { font-size: .58rem; }
+
+.letter {
+    margin: 10px 0 0;
+    padding-left: 12px;
+    border-left: 2px solid rgba(225, 6, 0, .7);
+    font-family: Unbounded, Manrope, sans-serif;
+    font-weight: 500;
+    font-size: .92rem;
+    line-height: 1.45;
+    letter-spacing: -.03em;
+    color: #f3f6fb;
+}
+
+.checkins {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin: 10px 0 0;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, .08);
+    text-align: left;
+}
+
+.checkins b {
+    font-family: Unbounded, Manrope, sans-serif;
+    font-weight: 500;
+    font-size: 1.35rem;
+    line-height: .9;
+    letter-spacing: -.03em;
+    font-variant-numeric: tabular-nums;
+    color: #fff;
+}
+
+.checkins span {
+    font-size: .58rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #ff5a5a;
 }
 
 .zone {
@@ -543,6 +633,7 @@ try {
         </div>
         <div class="dossier">
             <h1 id="title"><span id="title-a">До призыва</span><span id="title-b">Игоря</span></h1>
+            <p id="taken" hidden>в 6 утра 24 ноября</p>
             <div class="clock">
                 <div class="cell"><div class="num"><b id="days">00</b></div><span id="days-l">дней</span></div>
                 <div class="cell"><div class="num"><span class="sep">:</span><b id="hours">00</b></div><span id="hours-l">часов</span></div>
@@ -557,8 +648,22 @@ try {
             <div class="zones">
                 <div class="zone"><strong>Киев</strong><b id="z-kyiv">—</b></div>
                 <div class="zone"><strong>Москва</strong><b id="z-msk">—</b></div>
-                <div class="zone sib"><strong>Сибирь</strong><b id="z-sib">—</b><small>06:00, 24 ноября</small></div>
+                <div class="zone sib"><strong>Сибирь</strong><b id="z-sib">—</b></div>
             </div>
+            <section class="farewell">
+                <span class="kicker">Последнее сообщение</span>
+                <span class="kicker-sub">перед отъездом</span>
+                <div class="zones">
+                    <div class="zone"><strong>Киев</strong><b id="note-kyiv">—</b><small id="note-kyiv-d"></small></div>
+                    <div class="zone"><strong>Москва</strong><b id="note-msk">—</b><small id="note-msk-d"></small></div>
+                    <div class="zone sib"><strong>Сибирь</strong><b id="note-sib">—</b><small id="note-sib-d"></small></div>
+                </div>
+                <p class="letter">вот и всё ребятки пора прощаться всех обнял всем удачи во всём! всем пока пока спасибо за ваши слова будет вас не хватать каждого, скоро увидимся.</p>
+                <div class="checkins">
+                    <b id="checkins">0</b>
+                    <span id="checkins-l">раз выходил на связь</span>
+                </div>
+            </section>
         </div>
     </main>
 
@@ -594,6 +699,10 @@ try {
     const END = new Date('2027-11-24T06:00:00+07:00');
     const END_MS = END.getTime();
     const SIBERIA = 'Asia/Krasnoyarsk';
+    // Сообщение написано 24 ноября в полночь по Киеву.
+    const NOTE_AT = new Date('2026-11-24T00:00:00+02:00');
+    // Сколько раз Игорь выходил на связь. Поменяй число и залей файл снова.
+    const CHECKINS = 0;
 
     const CHANNELS = [
         { key: 'shtefanov', name: 'Штефанов', id: 'UCVVNJJXC7TQgPpAjQdgrqNw', node: 'n-sh' },
@@ -732,6 +841,7 @@ try {
     function newsList(id) {
         return Object.values(newsBags[id] || {})
             .filter(item => item && item.title && item.url && Number.isFinite(item.t))
+            .map(item => ({ ...item, thumb: articleImg(item.thumb) }))
             .sort((a, b) => b.t - a.t);
     }
 
@@ -748,7 +858,7 @@ try {
                 url: item.url,
                 t: item.t,
                 lead: item.lead || prev.lead || '',
-                thumb: item.thumb || prev.thumb || ''
+                thumb: articleImg(item.thumb) || articleImg(prev.thumb) || ''
             };
         });
         const list = Object.values(bag).sort((a, b) => b.t - a.t).slice(0, NEWS_CAP);
@@ -760,6 +870,12 @@ try {
     const $ = id => document.getElementById(id);
     const zoneFmt = Object.fromEntries(ZONES.map(z => [z.tz, new Intl.DateTimeFormat('ru-RU', {
         timeZone: z.tz, hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23'
+    })]));
+    const noteTimeFmt = Object.fromEntries(ZONES.map(z => [z.tz, new Intl.DateTimeFormat('ru-RU', {
+        timeZone: z.tz, hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+    })]));
+    const noteDayFmt = Object.fromEntries(ZONES.map(z => [z.tz, new Intl.DateTimeFormat('ru-RU', {
+        timeZone: z.tz, day: 'numeric', month: 'long'
     })]));
     const stampFmt = new Intl.DateTimeFormat('ru-RU', {
         timeZone: SIBERIA, day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
@@ -802,9 +918,20 @@ try {
         setText($('hours-l'), plural(hours, 'час', 'часа', 'часов'));
         setText($('minutes-l'), plural(minutes, 'минута', 'минуты', 'минут'));
         setText($('seconds-l'), plural(seconds, 'секунда', 'секунды', 'секунд'));
+        setText($('checkins'), String(CHECKINS));
+        setText($('checkins-l'), plural(CHECKINS, 'раз вышел на связь', 'раза выходил на связь', 'раз выходил на связь'));
+        [
+            ['note-kyiv', 'Europe/Kyiv'],
+            ['note-msk', 'Europe/Moscow'],
+            ['note-sib', SIBERIA]
+        ].forEach(([id, tz]) => {
+            setText($(id), noteTimeFmt[tz].format(NOTE_AT));
+            setText($(id + '-d'), noteDayFmt[tz].format(NOTE_AT));
+        });
         setText($('title-a'), serving ? 'Игоря' : 'До призыва');
         setText($('title-b'), serving ? 'забрали' : 'Игоря');
         $('title-b').hidden = false;
+        $('taken').hidden = !serving;
 
         const remain = $('remain');
         if (serving) {
@@ -1142,6 +1269,22 @@ try {
         return '';
     }
 
+    function articleImg(url) {
+        try {
+            const u = new URL(String(url || '').trim().replace(/^http:/i, 'https:'));
+            if (u.protocol !== 'https:') return '';
+            const host = u.hostname;
+            if (
+                /(^|\.)bing\.com$/.test(host) ||
+                /(^|\.)pravda\.com\.ua$/.test(host) ||
+                /(^|\.)kremlin\.ru$/.test(host) ||
+                /(^|\.)interfax\.ru$/.test(host) ||
+                /(^|\.)interfax-russia\.ru$/.test(host)
+            ) return u.href;
+        } catch (e) {}
+        return '';
+    }
+
     function plain(text) {
         return String(text || '')
             .replace(/<[^>]+>/g, ' ')
@@ -1186,11 +1329,16 @@ try {
     }
 
     function imageFrom(node) {
+        const enc = node.querySelector('enclosure');
+        if (enc) {
+            const fromEnc = articleImg(enc.getAttribute('url'));
+            if (fromEnc) return fromEnc;
+        }
         const tags = node.getElementsByTagName('*');
         for (let i = 0; i < tags.length; i++) {
             if (String(tags[i].localName || '').toLowerCase() !== 'image') continue;
-            const text = tags[i].textContent.trim();
-            if (/^https?:\/\//i.test(text)) return safeImg(text);
+            const fromTag = articleImg(tags[i].textContent.trim());
+            if (fromTag) return fromTag;
         }
         return '';
     }
@@ -1226,57 +1374,6 @@ try {
         });
     }
 
-    const summaryCache = {};
-    const searchCache = {};
-
-    async function wikiSummary(page) {
-        if (summaryCache[page] !== undefined) return summaryCache[page];
-        try {
-            const res = await withTimeout(fetch('https://ru.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(page)), 4000);
-            const data = await res.json();
-            summaryCache[page] = safeImg(data.thumbnail && data.thumbnail.source);
-        } catch (e) {
-            summaryCache[page] = '';
-        }
-        return summaryCache[page];
-    }
-
-    async function wikiSearch(title) {
-        const key = title.slice(0, 120);
-        if (searchCache[key]) return searchCache[key];
-        try {
-            const endpoint = 'https://ru.wikipedia.org/w/api.php?action=query&format=json&origin=*'
-                + '&generator=search&gsrlimit=3&gsrnamespace=0&prop=pageimages&piprop=thumbnail&pithumbsize=640&pilimit=3&gsrsearch='
-                + encodeURIComponent(key);
-            const data = await (await withTimeout(fetch(endpoint), 4000)).json();
-            const pages = data.query && data.query.pages ? Object.values(data.query.pages) : [];
-            pages.sort((a, b) => (a.index || 0) - (b.index || 0));
-            searchCache[key] = pages.map(page => safeImg(page.thumbnail && page.thumbnail.source)).filter(Boolean);
-        } catch (e) {
-            searchCache[key] = [];
-        }
-        return searchCache[key];
-    }
-
-    async function assignThumbs(items, feed) {
-        const used = new Set(items.map(item => item.thumb).filter(Boolean));
-        const pending = items.filter(item => !item.thumb);
-        for (let i = 0; i < pending.length; i += 4) {
-            const chunk = pending.slice(i, i + 4);
-            await Promise.all(chunk.map(async item => {
-                const found = feed.places.find(([word]) => item.title.includes(word));
-                const known = found ? await wikiSummary(found[1]) : '';
-                item._options = known ? [known] : await wikiSearch(item.title);
-            }));
-            chunk.forEach(item => {
-                const options = item._options || [];
-                item.thumb = options.find(url => !used.has(url)) || options[0] || '';
-                delete item._options;
-                if (item.thumb) used.add(item.thumb);
-            });
-        }
-    }
-
     function packNews(list) {
         return list.filter(item => item.title && item.url && Number.isFinite(item.t))
             .sort((a, b) => b.t - a.t)
@@ -1301,42 +1398,42 @@ try {
             title: cleanTitle(feed, item.title),
             url: storyUrl(item.link, feed.accept),
             t: publishedMs(item),
-            thumb: safeImg(item.thumbnail || (item.enclosure && item.enclosure.link)),
+            thumb: articleImg(item.thumbnail || (item.enclosure && item.enclosure.link)),
             lead: plain(item.description).slice(0, 110)
         })));
     }
 
-    function fetchFeedItems(feed) {
-        return withTimeout(fetchJsonp(feed.rss, 'igorNews_' + feed.id + '_' + (++jsonpN)), 8000)
-            .then(data => itemsFromJson(feed, data));
-    }
-
-    let thumbToken = 0;
-
-    function applyPic(item) {
-        if (!item.thumb) return;
-        const cards = document.querySelectorAll('#wire .card');
-        for (let i = 0; i < cards.length; i++) {
-            if (cards[i].href !== item.url) continue;
-            const pic = cards[i].querySelector('.pic');
-            if (pic) pic.style.backgroundImage = "url('" + item.thumb.replace(/'/g, '') + "')";
-        }
-    }
-
-    function paintThumbs(feed, items) {
-        const token = ++thumbToken;
-        const missing = items.filter(item => !item.thumb);
-        const run = async () => {
-            for (let i = 0; i < missing.length; i += 4) {
-                if (token !== thumbToken) return;
-                await assignThumbs(missing.slice(i, i + 4), feed);
-                if (token !== thumbToken) return;
-                saveNewsBags();
-                if (feedById(newsId).id !== feed.id) continue;
-                missing.slice(i, i + 4).forEach(applyPic);
+    function mergeNews(first, second) {
+        const byUrl = new Map();
+        first.concat(second).forEach(item => {
+            if (!item || !item.url) return;
+            const prev = byUrl.get(item.url);
+            if (!prev) {
+                byUrl.set(item.url, item);
+                return;
             }
-        };
-        run();
+            if (!prev.thumb && item.thumb) prev.thumb = item.thumb;
+            if (!prev.lead && item.lead) prev.lead = item.lead;
+        });
+        return packNews([...byUrl.values()]);
+    }
+
+    function fetchFeedItems(feed) {
+        const xmlItems = withTimeout(fetch('https://r.jina.ai/' + feed.rss, {
+            headers: { 'X-Return-Format': 'html' }
+        }), 8000).then(async res => {
+            if (!res.ok) throw new Error('bad');
+            return packNews(itemsFromXml(await res.text(), feed));
+        }).catch(() => []);
+        const jsonItems = withTimeout(
+            fetchJsonp(feed.rss, 'igorNews_' + feed.id + '_' + (++jsonpN)),
+            8000
+        ).then(data => itemsFromJson(feed, data)).catch(() => []);
+        return Promise.all([xmlItems, jsonItems]).then(([fromXml, fromJson]) => {
+            const items = mergeNews(fromXml, fromJson);
+            if (!items.length) throw new Error('empty');
+            return items;
+        });
     }
 
     let warming = false;
@@ -1347,7 +1444,7 @@ try {
         let failed = false;
         for (let i = 0; i < FEEDS.length; i++) {
             const feed = FEEDS[i];
-            if (newsList(feed.id).length >= 5) continue;
+            if (newsList(feed.id).filter(item => item.thumb).length >= 4) continue;
             try {
                 const items = await fetchFeedItems(feed);
                 if (!items.length) throw new Error('empty');
@@ -1355,7 +1452,6 @@ try {
                 if (feed.id === newsId) {
                     renderNews(list, feed);
                     setText($('news-status'), 'лента сама обновляется');
-                    paintThumbs(feed, list);
                 }
             } catch (e) {
                 failed = true;
@@ -1373,7 +1469,6 @@ try {
         if (known.length) {
             renderNews(known, feed);
             setText($('news-status'), 'лента сама обновляется');
-            paintThumbs(feed, known);
         }
         try {
             const items = await fetchFeedItems(feed);
@@ -1383,7 +1478,6 @@ try {
             if (feedById(newsId).id !== feed.id) return;
             renderNews(list, feed);
             setText($('news-status'), 'лента сама обновляется');
-            paintThumbs(feed, list);
         } catch (e) {
             if (gen !== newsGen) return;
             if (!newsList(feed.id).length) setText($('news-status'), 'лента сейчас не открылась');

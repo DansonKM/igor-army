@@ -265,7 +265,7 @@ main {
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 54px 52px 28px;
+    padding: 54px 52px 88px;
     overflow: auto;
 }
 
@@ -520,6 +520,7 @@ main {
 #share[data-on="1"] { color: #ff3b3b; }
 #sound:focus-visible,
 #share:focus-visible,
+#toggle-alerts:focus-visible,
 .rail:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 
 #share-pop {
@@ -579,6 +580,202 @@ main {
     letter-spacing: .06em;
 }
 
+#alerts {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 35;
+    display: none;
+    flex-direction: column;
+    width: min(1100px, calc(100vw - 36px));
+    height: min(86vh, 820px);
+    background: rgba(7, 9, 14, .96);
+    border-top: 8px solid #e10600;
+    transform: translate(-50%, -50%);
+}
+
+html[data-alerts="1"] #alerts { display: flex; }
+
+#alerts .panel-in {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#alerts header { padding: 14px 18px 12px; flex: 0 0 auto; }
+
+.map-frame {
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 0;
+    border: 0;
+    background: #0b0e14;
+}
+
+.map-frame[hidden] { display: none; }
+
+#place {
+    position: fixed;
+    top: max(14px, env(safe-area-inset-top));
+    left: max(14px, env(safe-area-inset-left));
+    z-index: 40;
+    width: min(280px, calc(100vw - 88px));
+    padding: 12px 14px 14px;
+    background: rgba(7, 9, 14, .92);
+    border-top: 4px solid #e10600;
+    text-align: left;
+}
+
+#place .where {
+    margin: 0;
+    font-size: .92rem;
+    line-height: 1.35;
+    color: #f3f6fb;
+}
+
+#place .spot { margin: 8px 0 0; }
+
+#place .spot b {
+    display: block;
+    font-family: Unbounded, Manrope, sans-serif;
+    font-weight: 500;
+    font-size: 1rem;
+    line-height: 1.25;
+    letter-spacing: -.02em;
+    color: #fff;
+}
+
+#place .spot small {
+    display: block;
+    margin-top: 2px;
+    font-size: .82rem;
+    color: #d5e4f2;
+}
+
+#place .ark {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 10px 0 0;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, .1);
+}
+
+#place .ark span {
+    font-size: .64rem;
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: #8ea3b8;
+}
+
+#place .ark b {
+    font-family: Unbounded, Manrope, sans-serif;
+    font-weight: 500;
+    font-size: 1.05rem;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -.02em;
+    color: #ff3b3b;
+}
+
+#place .wx {
+    margin: 6px 0 0;
+    font-family: Unbounded, Manrope, sans-serif;
+    font-weight: 500;
+    font-size: 1.05rem;
+    letter-spacing: -.02em;
+    color: #ff3b3b;
+}
+
+#toggle-alerts {
+    position: fixed;
+    left: max(14px, env(safe-area-inset-left));
+    bottom: max(14px, env(safe-area-inset-bottom));
+    z-index: 40;
+    padding: 14px 18px;
+    border: 0;
+    background: #e10600;
+    color: #fff;
+    font-family: Unbounded, Manrope, sans-serif;
+    font-size: .72rem;
+    font-weight: 500;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+
+#toggle-alerts[data-on="1"] { box-shadow: inset 0 -3px 0 #fff; }
+
+#toggle-alerts[data-alarm="1"] { background: #ff3b3b; color: #140406; }
+
+#igor-alert {
+    margin: 0 0 8px;
+    font-family: Unbounded, Manrope, sans-serif;
+    font-weight: 500;
+    font-size: 1rem;
+    line-height: 1.25;
+    letter-spacing: -.02em;
+    color: #ff3b3b;
+}
+
+#igor-alert[hidden] { display: none; }
+
+#alerts h2 {
+    font-family: Unbounded, Manrope, sans-serif;
+    font-size: .92rem;
+    font-weight: 500;
+    line-height: 1.35;
+}
+
+#alert-close {
+    padding: 0;
+    margin-bottom: 12px;
+    border: 0;
+    background: none;
+    color: #ff3b3b;
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+
+.alert-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding: 12px 52px 12px 18px;
+    border-bottom: 1px solid rgba(255, 255, 255, .1);
+}
+
+.alert-row b {
+    display: block;
+    font-family: Unbounded, Manrope, sans-serif;
+    font-weight: 500;
+    font-size: .88rem;
+    line-height: 1.3;
+}
+
+.alert-row time {
+    display: block;
+    margin-top: 4px;
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: .68rem;
+    line-height: 1.4;
+    color: #8ea3b8;
+}
+
+.alert-row em {
+    flex: 0 0 auto;
+    font-style: normal;
+    font-size: .64rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #ff3b3b;
+}
+
 @media (max-width: 760px) {
     body { overflow: hidden; }
     #app {
@@ -617,13 +814,28 @@ main {
     .card .body { padding-left: 52px; padding-right: 52px; }
     .switch button { min-height: 32px; }
     .rail { position: fixed; z-index: 30; }
+    #alerts,
+    html[data-alerts="1"] #alerts {
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 25;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        display: none;
+    }
+    html[data-alerts="1"] #alerts { display: flex; transform: none; }
+    #alerts header,
+    #alerts .alert-row { padding-left: 52px; padding-right: 52px; }
     main {
         flex: 1 1 auto;
         min-height: 0;
         height: 100%;
         order: 0;
         justify-content: flex-start;
-        padding: max(52px, env(safe-area-inset-top)) 46px 84px;
+        padding: 196px 46px 88px;
         overflow: auto;
     }
     .dossier { width: 100%; margin: auto 0; }
@@ -651,9 +863,11 @@ try {
     var savedDrawers = JSON.parse(localStorage.getItem('igor_drawers_v1') || '{}');
     document.documentElement.dataset.feed = savedDrawers.feed ? '1' : '0';
     document.documentElement.dataset.news = savedDrawers.news ? '1' : '0';
+    document.documentElement.dataset.alerts = savedDrawers.alerts ? '1' : '0';
 } catch (e) {
     document.documentElement.dataset.feed = '0';
     document.documentElement.dataset.news = '0';
+    document.documentElement.dataset.alerts = '0';
 }
 </script>
 </head>
@@ -663,6 +877,14 @@ try {
 <div class="layer" id="shade"></div>
 <canvas class="layer" id="snow"></canvas>
 <a id="tg" href="https://t.me/armyvendetta" target="_blank" rel="noopener">ТГ</a>
+<div id="place">
+    <p id="igor-alert" hidden>В округе, где служит Игорь, воздушная тревога</p>
+    <p class="where">Игорь находится примерно в этом округе</p>
+    <p class="spot"><b>Архангельская область</b><small>село Знаменск</small></p>
+    <p class="ark"><span>Архангельск</span><b id="z-ark">—</b></p>
+    <p class="wx" id="wx">—</p>
+</div>
+<button type="button" id="toggle-alerts" aria-controls="alerts" aria-expanded="false">Тревоги</button>
 
 <div id="app">
     <aside class="panel" id="feed">
@@ -742,6 +964,21 @@ try {
         <div class="tape" id="wire"></div>
         </div>
     </aside>
+    <aside id="alerts" aria-label="Тревоги">
+        <div class="panel-in">
+            <header>
+                <button type="button" id="alert-close">Закрыть</button>
+                <div class="switch" id="alert-switch">
+                    <button type="button" data-map="ua" aria-selected="true">Украина</button>
+                    <button type="button" data-map="ru">Россия</button>
+                </div>
+                <h2>Тревоги</h2>
+                <p class="note"><a id="alert-source" href="https://alerts.in.ua/" target="_blank" rel="noopener">alerts.in.ua</a></p>
+            </header>
+            <iframe class="map-frame" id="map-ua" title="Карта воздушных тревог Украины" hidden></iframe>
+            <iframe class="map-frame" id="map-ru" title="Карта воздушных тревог России" hidden></iframe>
+        </div>
+    </aside>
 </div>
 
 <audio id="music" preload="none" loop playsinline></audio>
@@ -757,6 +994,8 @@ try {
     const END = new Date('2027-11-24T06:00:00+07:00');
     const END_MS = END.getTime();
     const SIBERIA = 'Asia/Krasnoyarsk';
+    // Погода у места службы. Знаменск в Архангельской области, точка примерная.
+    const PLACE = { lat: 61.210, lon: 43.511 };
     // Сообщение написано 24 ноября в полночь по Киеву.
     const NOTE_AT = new Date('2026-11-24T00:00:00+02:00');
     // Сколько раз Игорь выходил на связь. Поменяй число и залей файл снова.
@@ -1029,6 +1268,7 @@ try {
 
         const now = new Date();
         ZONES.forEach(z => setText($(z.id), zoneFmt[z.tz].format(now)));
+        setText($('z-ark'), zoneFmt['Europe/Moscow'].format(now));
 
         document.title = serving
             ? days + ' ' + plural(days, 'день', 'дня', 'дней') + ' · Игоря забрали'
@@ -1155,7 +1395,8 @@ try {
         try {
             localStorage.setItem('igor_drawers_v1', JSON.stringify({
                 feed: document.documentElement.dataset.feed === '1',
-                news: document.documentElement.dataset.news === '1'
+                news: document.documentElement.dataset.news === '1',
+                alerts: document.documentElement.dataset.alerts === '1'
             }));
         } catch (e) {}
         if (name === 'news' && document.documentElement.dataset.news === '1') refreshNews();
@@ -1166,6 +1407,106 @@ try {
     paintDrawer('news');
     $('toggle-feed').addEventListener('click', () => toggleDrawer('feed'));
     $('toggle-news').addEventListener('click', () => toggleDrawer('news'));
+
+    const MAPS = {
+        ua: { href: 'https://alerts.in.ua/', name: 'alerts.in.ua', frame: 'map-ua' },
+        ru: { href: 'https://pulse.errata.page/ru/alerts/#al-map', name: 'Пульс', frame: 'map-ru' }
+    };
+    let alertMap = 'ua';
+    try {
+        if (localStorage.getItem('igor_alerts_v1') === 'ru') alertMap = 'ru';
+    } catch (e) {}
+
+    function paintAlerts() {
+        const open = document.documentElement.dataset.alerts === '1';
+        const btn = $('toggle-alerts');
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        btn.dataset.on = open ? '1' : '0';
+        document.querySelectorAll('#alert-switch button').forEach(item => {
+            item.setAttribute('aria-selected', item.dataset.map === alertMap ? 'true' : 'false');
+        });
+        const src = MAPS[alertMap];
+        const link = $('alert-source');
+        link.textContent = src.name;
+        link.href = src.href;
+        $('map-ua').hidden = alertMap !== 'ua';
+        $('map-ru').hidden = alertMap !== 'ru';
+    }
+
+    function showMap(id) {
+        const frame = $(MAPS[id].frame);
+        if (!frame.getAttribute('src')) frame.src = MAPS[id].href;
+        paintAlerts();
+    }
+
+    function toggleAlerts(force) {
+        const next = typeof force === 'boolean' ? force : document.documentElement.dataset.alerts !== '1';
+        document.documentElement.dataset.alerts = next ? '1' : '0';
+        paintAlerts();
+        try {
+            localStorage.setItem('igor_drawers_v1', JSON.stringify({
+                feed: document.documentElement.dataset.feed === '1',
+                news: document.documentElement.dataset.news === '1',
+                alerts: next
+            }));
+        } catch (e) {}
+        if (next) showMap(alertMap);
+    }
+
+    async function watchPlace() {
+        const line = $('igor-alert');
+        try {
+            const res = await withTimeout(fetch('https://pulse.errata.page/api/alerts/?series=0&region=RU-ARK'), 8000);
+            if (!res.ok) return;
+            const data = await res.json();
+            const info = data.active && data.active['RU-ARK'];
+            const on = !!(info && !info.stale && (info.uav || info.missile || info.aviation || info.air_raid));
+            line.hidden = !on;
+            $('toggle-alerts').dataset.alarm = on ? '1' : '0';
+        } catch (e) {}
+    }
+
+    function skyWord(code) {
+        if (code === 0) return 'ясно';
+        if (code === 1) return 'малооблачно';
+        if (code === 2) return 'облачно';
+        if (code === 3) return 'пасмурно';
+        if (code === 45 || code === 48) return 'туман';
+        if (code >= 51 && code <= 57) return 'морось';
+        if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return 'дождь';
+        if ((code >= 71 && code <= 77) || code === 85 || code === 86) return 'снег';
+        if (code >= 95) return 'гроза';
+        return '';
+    }
+
+    async function refreshWeather() {
+        const el = $('wx');
+        try {
+            const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + PLACE.lat
+                + '&longitude=' + PLACE.lon
+                + '&current=temperature_2m,weather_code&timezone=Europe%2FMoscow';
+            const res = await fetch(url);
+            if (!res.ok) return;
+            const data = await res.json();
+            const cur = data && data.current;
+            if (!cur || !Number.isFinite(cur.temperature_2m)) return;
+            const temp = Math.round(cur.temperature_2m);
+            const sign = temp > 0 ? '+' : temp < 0 ? '−' : '';
+            const word = skyWord(cur.weather_code);
+            el.textContent = sign + Math.abs(temp) + '°' + (word ? ', ' + word : '');
+        } catch (e) {}
+    }
+
+    $('toggle-alerts').addEventListener('click', () => toggleAlerts());
+    $('alert-close').addEventListener('click', () => toggleAlerts(false));
+    $('alert-switch').addEventListener('click', event => {
+        const btn = event.target.closest('button');
+        if (!btn || btn.dataset.map === alertMap) return;
+        alertMap = btn.dataset.map;
+        try { localStorage.setItem('igor_alerts_v1', alertMap); } catch (e) {}
+        showMap(alertMap);
+    });
+    paintAlerts();
 
     function armGesture() {
         const go = (e) => {
@@ -1702,10 +2043,19 @@ try {
     refreshNews();
     setInterval(refreshFeeds, 3 * 60 * 1000);
     setInterval(refreshNews, 3 * 60 * 1000);
+    setInterval(() => {
+        watchPlace();
+        if (document.documentElement.dataset.alerts === '1') showMap(alertMap);
+    }, 60 * 1000);
+    watchPlace();
+    refreshWeather();
+    setInterval(refreshWeather, 30 * 60 * 1000);
+    if (document.documentElement.dataset.alerts === '1') showMap(alertMap);
     document.addEventListener('visibilitychange', () => {
         if (document.hidden) return;
         refreshFeeds();
         refreshNews();
+        watchPlace();
     });
 
     const canvas = $('snow');

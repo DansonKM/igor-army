@@ -561,21 +561,79 @@ main {
 .rail-r { right: 0; }
 .rail[aria-expanded="true"] { background: #8d0c18; }
 
+#tg {
+    position: fixed;
+    right: max(14px, env(safe-area-inset-right));
+    bottom: max(14px, env(safe-area-inset-bottom));
+    z-index: 40;
+    width: 52px;
+    height: 52px;
+    display: grid;
+    place-items: center;
+    background: #e10600;
+    color: #fff;
+    text-decoration: none;
+    font-family: Unbounded, Manrope, sans-serif;
+    font-size: .78rem;
+    font-weight: 500;
+    letter-spacing: .06em;
+}
+
 @media (max-width: 760px) {
-    body { overflow: auto; }
+    body { overflow: hidden; }
     #app {
-        position: relative;
-        min-height: 100%;
-        flex-direction: column;
+        position: fixed;
+        inset: 0;
+        min-height: 0;
     }
     .wall { display: none; }
-    .panel { height: auto; flex-basis: auto; width: 100%; max-height: 0; }
-    #feed .panel-in, #news .panel-in { width: 100%; }
-    html[data-feed="1"] #feed { flex-basis: auto; max-height: 70vh; border-top: 8px solid #e10600; }
-    html[data-news="1"] #news { flex-basis: auto; max-height: 80vh; border-top: 8px solid #e10600; }
-    main { min-height: 100vh; order: -1; padding: 58px 42px 16px; }
-    #title { font-size: 2rem; letter-spacing: -.03em; }
-    .cell { --gap: 10px; padding: 0 var(--gap); }
+    #feed,
+    #news,
+    html[data-feed="1"] #feed,
+    html[data-news="1"] #news {
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        flex: none;
+        flex-basis: auto;
+        width: 100%;
+        height: 100%;
+        max-height: none;
+        border: 0;
+        transform: translateY(110%);
+        visibility: hidden;
+        pointer-events: none;
+    }
+    html[data-feed="1"] #feed,
+    html[data-news="1"] #news {
+        transform: none;
+        visibility: visible;
+        pointer-events: auto;
+    }
+    #feed .panel-in,
+    #news .panel-in { width: 100%; height: 100%; }
+    .panel header,
+    .hit,
+    .card .body { padding-left: 52px; padding-right: 52px; }
+    .switch button { min-height: 32px; }
+    .rail { position: fixed; z-index: 30; }
+    main {
+        flex: 1 1 auto;
+        min-height: 0;
+        height: 100%;
+        order: 0;
+        justify-content: flex-start;
+        padding: max(52px, env(safe-area-inset-top)) 46px 84px;
+        overflow: auto;
+    }
+    .dossier { width: 100%; margin: auto 0; }
+    #title { font-size: clamp(1.55rem, 8vw, 2.15rem); letter-spacing: -.03em; }
+    .clock { margin-top: 14px; }
+    .cell { --gap: 8px; padding: 0 var(--gap); }
+    .cell b, .sep { font-size: clamp(1.55rem, 10vw, 3rem); }
+    #remain { margin-top: 12px; }
+    .zones { margin-top: 14px; padding-top: 10px; }
+    .farewell { margin-top: 14px; }
 }
 
 @media (max-height: 640px) and (min-width: 981px) {
@@ -604,6 +662,7 @@ try {
 <div class="layer" id="bg"></div>
 <div class="layer" id="shade"></div>
 <canvas class="layer" id="snow"></canvas>
+<a id="tg" href="https://t.me/armyvendetta" target="_blank" rel="noopener">ТГ</a>
 
 <div id="app">
     <aside class="panel" id="feed">

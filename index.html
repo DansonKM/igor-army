@@ -1084,6 +1084,7 @@ try {
             }));
         } catch (e) {}
         if (name === 'news' && document.documentElement.dataset.news === '1') refreshNews();
+        if (name === 'feed' && document.documentElement.dataset.feed === '1') refreshFeeds();
     }
 
     paintDrawer('feed');
@@ -1219,6 +1220,72 @@ try {
         );
     }
 
+    function xmlSlice(text) {
+        const raw = String(text || '');
+        const start = raw.indexOf('<feed');
+        const end = raw.lastIndexOf('</feed>');
+        return start >= 0 && end > start ? raw.slice(start, end + 7) : raw;
+    }
+
+    function byLocal(node, name) {
+        const tags = node.getElementsByTagName('*');
+        for (let i = 0; i < tags.length; i++) {
+            if (String(tags[i].localName || '').toLowerCase() === name) return tags[i];
+        }
+        return null;
+    }
+
+    function videosFromAtom(xml) {
+        const doc = new DOMParser().parseFromString(xmlSlice(xml), 'text/xml');
+        if (doc.querySelector('parsererror')) return [];
+        const entries = [...doc.getElementsByTagName('*')].filter(node => String(node.localName || '').toLowerCase() === 'entry');
+        return entries.map(node => {
+            const idNode = byLocal(node, 'videoid');
+            let id = idNode ? idNode.textContent.trim() : '';
+            if (!/^[\w-]{11}$/.test(id)) {
+                const link = byLocal(node, 'link');
+                const href = link ? link.getAttribute('href') || '' : '';
+                const match = href.match(/[?&]v=([\w-]{11})/);
+                id = match ? match[1] : '';
+            }
+            const titleNode = byLocal(node, 'title');
+            const published = byLocal(node, 'published');
+            const thumbNode = byLocal(node, 'thumbnail');
+            return {
+                id,
+                title: titleNode ? titleNode.textContent.trim() : '',
+                t: Date.parse(published ? published.textContent.trim() : ''),
+                url: 'https://www.youtube.com/watch?v=' + id,
+                thumb: safeImg(thumbNode ? thumbNode.getAttribute('url') : '')
+            };
+        }).filter(row => row.id && row.title && Number.isFinite(row.t) && row.t <= Date.now() + 60000);
+    }
+
+    async function fetchChannelVideos(channelId) {
+        const rss = 'https://www.youtube.com/feeds/videos.xml?channel_id=' + channelId;
+        try {
+            const res = await withTimeout(fetch('https://r.jina.ai/' + rss, {
+                headers: { 'X-Return-Format': 'html' }
+            }), 8000);
+            if (res.ok) {
+                const rows = videosFromAtom(await res.text());
+                if (rows.length) return rows;
+            }
+        } catch (e) {}
+        const data = await fetchFeed(channelId);
+        if (!data || data.status !== 'ok' || !Array.isArray(data.items)) throw new Error('bad');
+        return data.items.map(item => {
+            const id = videoId(item);
+            return {
+                id,
+                title: String(item.title || '').trim(),
+                t: publishedMs(item),
+                url: 'https://www.youtube.com/watch?v=' + id,
+                thumb: safeImg(item.thumbnail)
+            };
+        }).filter(row => row.id && row.title && Number.isFinite(row.t) && row.t <= Date.now() + 60000);
+    }
+
     let fetching = false;
 
     async function refreshFeeds() {
@@ -1227,22 +1294,10 @@ try {
         let failed = 0;
         await Promise.all(CHANNELS.map(async ch => {
             try {
-                const data = await fetchFeed(ch.id);
-                if (!data || data.status !== 'ok' || !Array.isArray(data.items)) throw new Error('bad');
+                const rows = await fetchChannelVideos(ch.id);
                 const bag = store[ch.key] || (store[ch.key] = {});
-                const rows = [];
-                data.items.forEach(item => {
-                    const id = videoId(item);
-                    const t = publishedMs(item);
-                    const title = String(item.title || '').trim();
-                    if (!id || !title || !Number.isFinite(t) || t > Date.now() + 60000) return;
-                    rows.push({
-                        title,
-                        t,
-                        url: 'https://www.youtube.com/watch?v=' + id,
-                        thumb: safeImg(item.thumbnail)
-                    });
-                    if (t >= DRAFT_MS) bag[id] = t;
+                rows.forEach(row => {
+                    if (row.t >= DRAFT_MS) bag[row.id] = row.t;
                 });
                 latest[ch.key] = rows;
             } catch (e) {
@@ -1507,7 +1562,7 @@ try {
     renderMissed('смотрим YouTube…');
     refreshFeeds();
     refreshNews();
-    setInterval(refreshFeeds, 10 * 60 * 1000);
+    setInterval(refreshFeeds, 3 * 60 * 1000);
     setInterval(refreshNews, 3 * 60 * 1000);
     document.addEventListener('visibilitychange', () => {
         if (document.hidden) return;

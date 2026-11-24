@@ -242,7 +242,8 @@ html[data-news="1"] #wall-news { flex-basis: 8px; }
     display: block;
     margin-top: 5px;
     font-family: ui-monospace, Consolas, monospace;
-    font-size: .75rem;
+    font-size: .72rem;
+    line-height: 1.45;
     color: #8ea3b8;
 }
 
@@ -617,7 +618,6 @@ try {
                     <b id="n-katz">0</b><em>Кац</em>
                 </a>
             </div>
-            <p class="note" id="missed-status">смотрим YouTube…</p>
         </header>
         <div class="tape" id="tape"></div>
         </div>
@@ -679,7 +679,6 @@ try {
             </div>
             <h2><a id="news-title" href="https://www.interfax-russia.ru/siberia/news" target="_blank" rel="noopener">Новости Сибири</a></h2>
             <p class="note"><a id="news-source" href="https://www.interfax-russia.ru/" target="_blank" rel="noopener">Интерфакс</a></p>
-            <p class="note" id="news-status">смотрим ленту…</p>
         </header>
         <div class="tape" id="wire"></div>
         </div>
@@ -710,9 +709,9 @@ try {
     ];
 
     const ZONES = [
-        { id: 'z-kyiv', tz: 'Europe/Kyiv' },
-        { id: 'z-msk', tz: 'Europe/Moscow' },
-        { id: 'z-sib', tz: SIBERIA }
+        { id: 'z-kyiv', name: 'Киев', tz: 'Europe/Kyiv' },
+        { id: 'z-msk', name: 'Москва', tz: 'Europe/Moscow' },
+        { id: 'z-sib', name: 'Сибирь', tz: SIBERIA }
     ];
 
     const STORE_KEY = 'igor_missed_v1';
@@ -841,7 +840,7 @@ try {
     function newsList(id) {
         return Object.values(newsBags[id] || {})
             .filter(item => item && item.title && item.url && Number.isFinite(item.t))
-            .map(item => ({ ...item, thumb: articleImg(item.thumb) }))
+            .map(item => ({ ...item, thumb: cleanThumb(item.url, item.thumb), shot: item.shot ? 1 : 0 }))
             .sort((a, b) => b.t - a.t);
     }
 
@@ -858,7 +857,8 @@ try {
                 url: item.url,
                 t: item.t,
                 lead: item.lead || prev.lead || '',
-                thumb: articleImg(item.thumb) || articleImg(prev.thumb) || ''
+                thumb: item.shot ? cleanThumb(item.url, item.thumb) : (cleanThumb(item.url, item.thumb) || cleanThumb(item.url, prev.thumb) || ''),
+                shot: item.shot || prev.shot ? 1 : 0
             };
         });
         const list = Object.values(bag).sort((a, b) => b.t - a.t).slice(0, NEWS_CAP);
@@ -877,9 +877,25 @@ try {
     const noteDayFmt = Object.fromEntries(ZONES.map(z => [z.tz, new Intl.DateTimeFormat('ru-RU', {
         timeZone: z.tz, day: 'numeric', month: 'long'
     })]));
-    const stampFmt = new Intl.DateTimeFormat('ru-RU', {
-        timeZone: SIBERIA, day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
-    });
+    const stampDayFmt = Object.fromEntries(ZONES.map(z => [z.tz, new Intl.DateTimeFormat('ru-RU', {
+        timeZone: z.tz, day: 'numeric', month: 'short'
+    })]));
+    const stampTimeFmt = Object.fromEntries(ZONES.map(z => [z.tz, new Intl.DateTimeFormat('ru-RU', {
+        timeZone: z.tz, hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+    })]));
+
+    function stampLine(ms) {
+        const date = new Date(ms);
+        const parts = ZONES.map(z => ({
+            name: z.name,
+            day: stampDayFmt[z.tz].format(date),
+            time: stampTimeFmt[z.tz].format(date)
+        }));
+        const times = parts.map(part => part.time + ' ' + part.name).join(' · ');
+        return parts.every(part => part.day === parts[0].day)
+            ? parts[0].day + ' · ' + times
+            : parts.map(part => part.day + ' ' + part.time + ' ' + part.name).join(' · ');
+    }
 
     function plural(n, one, few, many) {
         const m10 = n % 10, m100 = n % 100;
@@ -1146,10 +1162,9 @@ try {
         return Date.parse(raw.includes('T') ? raw : raw.replace(' ', 'T') + 'Z');
     }
 
-    function renderMissed(status) {
+    function renderMissed() {
         const before = Date.now() < DRAFT_MS;
         CHANNELS.forEach(ch => setText($(ch.node), before ? '0' : String(countOf(ch.key))));
-        if (status) setText($('missed-status'), status);
     }
 
     function renderTape() {
@@ -1165,13 +1180,13 @@ try {
             + '<span class="pic"' + (v.thumb ? ' style="background-image:url(\'' + esc(v.thumb) + '\')"' : '') + '></span>'
             + '<span class="body"><i>' + esc(v.who) + '</i>'
             + '<b>' + esc(v.title) + '</b>'
-            + '<time>' + esc(stampFmt.format(v.t)) + '</time></span>'
+            + '<time>' + esc(stampLine(v.t)) + '</time></span>'
             + '</a>'
         ).join('');
         const tape = $('tape');
         if (tape.dataset.html !== html) {
             tape.dataset.html = html;
-            tape.innerHTML = html || '<p class="note" style="padding:12px 16px">Пока пусто. Сюда попадут ролики с утра 24 ноября.</p>';
+            tape.innerHTML = html;
         }
     }
 
@@ -1306,12 +1321,9 @@ try {
         }));
         fetching = false;
         renderTape();
-        if (failed === CHANNELS.length) {
-            renderMissed('сейчас не достучаться');
-            return;
-        }
+        renderMissed();
+        if (failed === CHANNELS.length) return;
         saveStore(store);
-        renderMissed(Date.now() < DRAFT_MS ? 'пропуски с утра 24 ноября' : 'само обновляется');
     }
 
     function safeImg(url) {
@@ -1354,11 +1366,11 @@ try {
             + '<span class="pic"' + (item.thumb ? ' style="background-image:url(\'' + esc(item.thumb) + '\')"' : '') + '></span>'
             + '<span class="body"><i>' + esc(feed.tag) + '</i><b>' + esc(item.title) + '</b>'
             + (item.lead ? '<span class="lead">' + esc(item.lead) + '</span>' : '')
-            + '<time>' + esc(stampFmt.format(item.t)) + '</time></span></a>'
+            + '<time>' + esc(stampLine(item.t)) + '</time></span></a>'
         ).join('');
         const wire = $('wire');
         wire.dataset.html = html;
-        wire.innerHTML = html + '<p class="note more">новые сами появляются сверху, старые остаются ниже</p>';
+        wire.innerHTML = html;
     }
 
     function fetchRaw(url, cb) {
@@ -1383,19 +1395,45 @@ try {
         });
     }
 
-    function imageFrom(node) {
+    function cleanThumb(pageUrl, url) {
+        const img = articleImg(url);
+        if (!img) return '';
+        if (/logo|og_logo|aspimg|placeholder|sprite|favicon|touch-icon/i.test(img)) return '';
+        try {
+            const host = new URL(img).hostname;
+            const page = new URL(pageUrl).hostname;
+            if (/(^|\.)bing\.com$/.test(host) && /interfax/.test(page)) return '';
+        } catch (e) {}
+        return img;
+    }
+
+    function imageMeta(node) {
         const enc = node.querySelector('enclosure');
         if (enc) {
             const fromEnc = articleImg(enc.getAttribute('url'));
-            if (fromEnc) return fromEnc;
+            if (fromEnc) return { url: fromEnc, w: 0, h: 0 };
         }
+        let url = '';
+        let w = 0;
+        let h = 0;
         const tags = node.getElementsByTagName('*');
         for (let i = 0; i < tags.length; i++) {
-            if (String(tags[i].localName || '').toLowerCase() !== 'image') continue;
-            const fromTag = articleImg(tags[i].textContent.trim());
-            if (fromTag) return fromTag;
+            const name = String(tags[i].localName || '').toLowerCase();
+            const text = tags[i].textContent.trim();
+            if (name === 'image' && !url) url = articleImg(text);
+            if (name === 'imagemaxwidth') w = parseInt(text, 10) || w;
+            if (name === 'imagemaxheight') h = parseInt(text, 10) || h;
         }
-        return '';
+        if (url && w && h && w === h && w <= 400) url = '';
+        return { url, w, h };
+    }
+
+    function dropSharedThumbs(items) {
+        const counts = {};
+        items.forEach(item => {
+            if (item.thumb) counts[item.thumb] = (counts[item.thumb] || 0) + 1;
+        });
+        return items.map(item => counts[item.thumb] >= 3 ? { ...item, thumb: '' } : item);
     }
 
     function storyUrl(link, accept) {
@@ -1438,23 +1476,30 @@ try {
     function itemsFromXml(xml, feed) {
         const doc = new DOMParser().parseFromString(xml, 'text/xml');
         if (doc.querySelector('parsererror')) return [];
-        return [...doc.querySelectorAll('item')].map(node => ({
-            title: cleanTitle(feed, node.querySelector('title')?.textContent || ''),
-            url: storyUrl(node.querySelector('link')?.textContent || '', feed.accept),
-            t: Date.parse(node.querySelector('pubDate')?.textContent || ''),
-            thumb: imageFrom(node),
-            lead: plain(node.querySelector('description')?.textContent || '').slice(0, 110)
+        return dropSharedThumbs([...doc.querySelectorAll('item')].map(node => {
+            const url = storyUrl(node.querySelector('link')?.textContent || '', feed.accept);
+            const pic = imageMeta(node);
+            return {
+                title: cleanTitle(feed, node.querySelector('title')?.textContent || ''),
+                url,
+                t: Date.parse(node.querySelector('pubDate')?.textContent || ''),
+                thumb: cleanThumb(url, pic.url),
+                lead: plain(node.querySelector('description')?.textContent || '').slice(0, 110)
+            };
         }));
     }
 
     function itemsFromJson(feed, data) {
         if (!data || data.status !== 'ok' || !Array.isArray(data.items)) return [];
-        return packNews(data.items.map(item => ({
-            title: cleanTitle(feed, item.title),
-            url: storyUrl(item.link, feed.accept),
-            t: publishedMs(item),
-            thumb: articleImg(item.thumbnail || (item.enclosure && item.enclosure.link)),
-            lead: plain(item.description).slice(0, 110)
+        return dropSharedThumbs(packNews(data.items.map(item => {
+            const url = storyUrl(item.link, feed.accept);
+            return {
+                title: cleanTitle(feed, item.title),
+                url,
+                t: publishedMs(item),
+                thumb: cleanThumb(url, item.thumbnail || (item.enclosure && item.enclosure.link)),
+                lead: plain(item.description).slice(0, 110)
+            };
         })));
     }
 
@@ -1504,10 +1549,7 @@ try {
                 const items = await fetchFeedItems(feed);
                 if (!items.length) throw new Error('empty');
                 const list = rememberNews(feed.id, items);
-                if (feed.id === newsId) {
-                    renderNews(list, feed);
-                    setText($('news-status'), 'лента сама обновляется');
-                }
+                if (feed.id === newsId) renderNews(list, feed);
             } catch (e) {
                 failed = true;
             }
@@ -1521,10 +1563,7 @@ try {
         const feed = feedById(newsId);
         paintFeed(feed);
         const known = newsList(feed.id);
-        if (known.length) {
-            renderNews(known, feed);
-            setText($('news-status'), 'лента сама обновляется');
-        }
+        if (known.length) renderNews(known, feed);
         try {
             const items = await fetchFeedItems(feed);
             if (gen !== newsGen) return;
@@ -1532,12 +1571,11 @@ try {
             if (!list.length) throw new Error('empty');
             if (feedById(newsId).id !== feed.id) return;
             renderNews(list, feed);
-            setText($('news-status'), 'лента сама обновляется');
         } catch (e) {
             if (gen !== newsGen) return;
-            if (!newsList(feed.id).length) setText($('news-status'), 'лента сейчас не открылась');
         }
         warmOthers();
+        fillPhotos(feed);
     }
 
     $('news-switch').addEventListener('click', event => {
@@ -1550,16 +1588,57 @@ try {
         const saved = newsList(newsId);
         if (saved.length) {
             renderNews(saved, feed);
-            setText($('news-status'), 'лента сама обновляется');
         } else {
             $('wire').dataset.html = '';
             $('wire').innerHTML = '';
-            setText($('news-status'), 'смотрим ленту…');
         }
         refreshNews();
     });
 
-    renderMissed('смотрим YouTube…');
+    function pagePhoto(html, pageUrl) {
+        const raw = String(html || '');
+        const start = raw.search(/<html[\s>]/i);
+        const doc = new DOMParser().parseFromString(start >= 0 ? raw.slice(start) : raw, 'text/html');
+        const root = doc.querySelector('[itemprop="articleBody"]') || doc.querySelector('article');
+        if (!root) return null;
+        const imgs = root.querySelectorAll('img');
+        for (let i = 0; i < imgs.length; i++) {
+            let src = imgs[i].getAttribute('src') || '';
+            if (!src || src.indexOf('data:') === 0) continue;
+            try { src = new URL(src, pageUrl).href; } catch (e) { continue; }
+            const ok = cleanThumb(pageUrl, src);
+            if (ok) return ok;
+        }
+        return '';
+    }
+
+    const shotBusy = new Set();
+
+    async function fillPhotos(feed) {
+        if (!feed || (feed.id !== 'sib' && feed.id !== 'fed')) return;
+        const pending = newsList(feed.id).filter(item => !item.shot && !item.thumb && !shotBusy.has(item.url)).slice(0, 12);
+        for (let n = 0; n < pending.length; n += 4) {
+            const chunk = pending.slice(n, n + 4);
+            await Promise.all(chunk.map(async item => {
+            shotBusy.add(item.url);
+            try {
+                const res = await withTimeout(fetch('https://r.jina.ai/' + item.url, {
+                    headers: { 'X-Return-Format': 'html' }
+                }), 8000);
+                if (res.ok) {
+                    const found = pagePhoto(await res.text(), item.url);
+                    if (found !== null) {
+                        const list = rememberNews(feed.id, [{ ...item, thumb: found, shot: 1 }]);
+                        if (feedById(newsId).id === feed.id) renderNews(list, feed);
+                    }
+                }
+            } catch (e) {}
+            shotBusy.delete(item.url);
+        }));
+        }
+    }
+
+    renderMissed();
     refreshFeeds();
     refreshNews();
     setInterval(refreshFeeds, 3 * 60 * 1000);

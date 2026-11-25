@@ -456,6 +456,41 @@ main {
     color: #ff5a5a;
 }
 
+.call-log {
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.call-log li {
+    margin: 0;
+    padding: 10px 0 0;
+}
+
+.call-log li + li {
+    margin-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, .08);
+}
+
+.call-log time {
+    display: block;
+    font-size: .58rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #8ea3b8;
+}
+
+.call-log p {
+    margin: 6px 0 0;
+    font-family: Unbounded, Manrope, sans-serif;
+    font-weight: 500;
+    font-size: .82rem;
+    line-height: 1.4;
+    letter-spacing: -.02em;
+    color: #f3f6fb;
+}
+
 .zone {
     padding: 0 22px;
     background: none;
@@ -995,9 +1030,10 @@ try {
                 </div>
                 <p class="letter">вот и всё ребятки пора прощаться всех обнял всем удачи во всём! всем пока пока спасибо за ваши слова будет вас не хватать каждого, скоро увидимся.</p>
                 <div class="checkins">
-                    <b id="checkins">0</b>
-                    <span id="checkins-l">раз выходил на связь</span>
+                    <b id="checkins">1</b>
+                    <span id="checkins-l">раз вышел на связь</span>
                 </div>
+                <ol class="call-log" id="call-log"></ol>
             </section>
         </div>
     </main>
@@ -1052,8 +1088,14 @@ try {
     const PLACE = { lat: 48.586, lon: 45.736 };
     // Сообщение написано 24 ноября в полночь по Киеву.
     const NOTE_AT = new Date('2026-11-24T00:00:00+02:00');
-    // Сколько раз Игорь выходил на связь. Поменяй число и залей файл снова.
-    const CHECKINS = 0;
+    // Звонки Игоря. Новая запись сверху. Счётчик сам берётся из длины списка.
+    const CALLS = [
+        {
+            when: '25 ноября, 06:47',
+            text: 'Позвонил Мортальчику и сразу сбросил, ничего не сказав. Пока не ясно, почему он сбросил и всё ли у него хорошо. Он живой.'
+        }
+    ];
+    const CHECKINS = CALLS.length;
 
     const CHANNELS = [
         { key: 'shtefanov', name: 'Штефанов', id: 'UCVVNJJXC7TQgPpAjQdgrqNw', node: 'n-sh' },
@@ -1291,6 +1333,18 @@ try {
         setText($('seconds-l'), plural(seconds, 'секунда', 'секунды', 'секунд'));
         setText($('checkins'), String(CHECKINS));
         setText($('checkins-l'), plural(CHECKINS, 'раз вышел на связь', 'раза выходил на связь', 'раз выходил на связь'));
+        const log = $('call-log');
+        if (log && !log.childElementCount) {
+            CALLS.forEach(call => {
+                const item = document.createElement('li');
+                const time = document.createElement('time');
+                time.textContent = call.when;
+                const text = document.createElement('p');
+                text.textContent = call.text;
+                item.append(time, text);
+                log.append(item);
+            });
+        }
         [
             ['note-kyiv', 'Europe/Kyiv'],
             ['note-msk', 'Europe/Moscow'],

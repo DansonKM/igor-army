@@ -12,6 +12,11 @@
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
+:root {
+    --sheet-l: min(400px, 34vw);
+    --sheet-r: min(420px, 36vw);
+}
+
 html, body { height: 100%; }
 
 body {
@@ -56,41 +61,78 @@ button { cursor: pointer; }
     display: flex;
     flex-direction: row;
     align-items: stretch;
+    transition: padding .38s ease;
 }
 
+html[data-feed="1"] #app,
+html[data-calls="1"] #app { padding-left: var(--sheet-l); }
+html[data-news="1"] #app { padding-right: var(--sheet-r); }
+
 .panel {
-    flex: 0 0 0px;
-    width: 0;
-    min-width: 0;
-    height: 100%;
     overflow: hidden;
-    background: rgba(7, 9, 14, .9);
+    background: rgba(7, 9, 14, .92);
     backdrop-filter: blur(8px);
-    transition: flex-basis .38s ease;
 }
+
+#feed,
+#calls,
+#news {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    z-index: 16;
+    transition: transform .38s ease;
+}
+
+#feed,
+#calls {
+    left: 0;
+    width: var(--sheet-l);
+    transform: translateX(-100%);
+}
+
+#news {
+    right: 0;
+    width: var(--sheet-r);
+    transform: translateX(100%);
+}
+
+html[data-feed="1"] #feed,
+html[data-calls="1"] #calls,
+html[data-news="1"] #news { transform: translateX(0); }
+
+html[data-feed="1"] #feed,
+html[data-calls="1"] #calls { z-index: 17; }
+
+#feed::after,
+#calls::after,
+#news::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 8px;
+    background: #e10600;
+    z-index: 5;
+    pointer-events: none;
+}
+
+#feed::after,
+#calls::after { right: 0; }
+#news::after { left: 0; }
 
 .panel-in {
     height: 100%;
+    width: 100%;
     display: flex;
     flex-direction: column;
     overflow: auto;
 }
 
-#feed .panel-in { width: min(380px, 34vw); }
-#news .panel-in { width: min(420px, 36vw); }
+#feed .panel-in,
+#calls .panel-in { padding-right: 16px; }
 
-html[data-feed="1"] #feed { flex-basis: min(380px, 34vw); }
-html[data-news="1"] #news { flex-basis: min(420px, 36vw); }
-
-.wall {
-    flex: 0 0 0px;
-    width: 0;
-    background: #e10600;
-    transition: flex-basis .38s ease;
-}
-
-html[data-feed="1"] #wall-feed,
-html[data-news="1"] #wall-news { flex-basis: 8px; }
+#news .panel-in { padding-left: 16px; }
 
 .panel header {
     position: sticky;
@@ -297,7 +339,35 @@ main {
     text-transform: uppercase;
     color: #8ea3b8;
 }
-#taken[hidden] { display: none; }
+#visits {
+    position: fixed;
+    top: max(16px, env(safe-area-inset-top));
+    right: max(18px, env(safe-area-inset-right));
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0;
+    color: #f3f6fb;
+    transition: transform .38s ease;
+}
+
+#visits[hidden] { display: none; }
+
+#visits svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+#visits b {
+    font-family: Unbounded, Manrope, sans-serif;
+    font-weight: 500;
+    font-size: 1rem;
+    line-height: 1;
+    letter-spacing: -.03em;
+    font-variant-numeric: tabular-nums;
+}
 
 .clock {
     display: flex;
@@ -467,9 +537,12 @@ main {
     padding: 10px 0 0;
 }
 
-.call-log li + li {
-    margin-top: 10px;
-    border-top: 1px solid rgba(255, 255, 255, .08);
+.panel .call-log { padding: 8px 20px 28px; }
+
+.call-log li.farewell {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 59, 59, .28);
 }
 
 .call-log time {
@@ -534,7 +607,7 @@ main {
 .tools {
     position: absolute;
     top: 18px;
-    right: 22px;
+    right: 92px;
     z-index: 3;
     display: flex;
     gap: 18px;
@@ -555,8 +628,8 @@ main {
 #share[data-on="1"] { color: #ff3b3b; }
 #sound:focus-visible,
 #share:focus-visible,
-#toggle-alerts:focus-visible,
-.rail:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.edge button:focus-visible,
+#tg:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 
 #share-pop {
     position: absolute;
@@ -576,46 +649,96 @@ main {
     font: 12px ui-monospace, Consolas, monospace;
 }
 
-.rail {
-    position: absolute;
+.edge {
+    position: fixed;
     top: 50%;
-    z-index: 4;
-    transform: translateY(-50%);
-    writing-mode: vertical-rl;
-    padding: 18px 11px;
-    border: 0;
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    width: 36px;
     background: #e10600;
+    transform: translateY(-50%);
+    transition: transform .38s ease;
+}
+
+#dock-l { left: 0; }
+#dock-r { right: 0; }
+
+.edge button {
+    writing-mode: vertical-rl;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 108px;
+    flex: 0 0 108px;
+    padding: 0;
+    border: 0;
+    background: transparent;
     color: #fff;
     font-family: Unbounded, Manrope, sans-serif;
-    font-size: .68rem;
+    font-size: .62rem;
     font-weight: 500;
-    letter-spacing: .14em;
+    letter-spacing: .12em;
     text-transform: uppercase;
 }
 
-.rail-l { left: 0; }
-.rail-r { right: 0; }
-.rail[aria-expanded="true"] { background: #8d0c18; }
+.edge button + button { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .28); }
+.edge button[aria-expanded="true"] { background: #8d0c18; }
+.edge button[data-alarm="1"] { background: #ff3b3b; color: #140406; }
+
+html[data-feed="1"] #dock-l,
+html[data-calls="1"] #dock-l { transform: translate(min(400px, 34vw), -50%); }
+html[data-news="1"] #dock-r { transform: translate(calc(-1 * min(420px, 36vw)), -50%); }
+html[data-news="1"] #visits { transform: translateX(calc(-1 * min(420px, 36vw))); }
 
 #tg {
     position: fixed;
-    right: max(14px, env(safe-area-inset-right));
+    left: max(14px, env(safe-area-inset-left));
     bottom: max(14px, env(safe-area-inset-bottom));
     z-index: 40;
-    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    padding: 6px;
     background: #e10600;
     color: #fff;
+    text-align: center;
     text-decoration: none;
     font-family: Unbounded, Manrope, sans-serif;
-    font-size: .72rem;
+    font-size: .54rem;
     font-weight: 500;
-    letter-spacing: .12em;
+    line-height: 1.15;
+    letter-spacing: .04em;
     text-transform: uppercase;
     transition: transform .38s ease;
 }
 
-html[data-news="1"] #tg {
-    transform: translateX(calc(-1 * (min(420px, 36vw) + 64px)));
+html[data-feed="1"] #place,
+html[data-calls="1"] #place { transform: translateX(calc(min(400px, 34vw) - 8px)); }
+
+html[data-feed="1"] #tg,
+html[data-calls="1"] #tg { transform: translateX(calc(var(--sheet-l) - 6px)); }
+
+.latest {
+    width: min(640px, 100%);
+    margin: 22px auto 0;
+    text-align: left;
+}
+
+.latest .checkins { margin-top: 0; padding-top: 0; border-top: 0; }
+
+.latest .kicker {
+    display: block;
+    margin-top: 12px;
+    font-family: Unbounded, Manrope, sans-serif;
+    font-size: .58rem;
+    font-weight: 500;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #ff3b3b;
 }
 
 #alerts {
@@ -683,21 +806,6 @@ html[data-alerts="1"] #alerts { display: flex; }
     text-align: left;
     text-shadow: 0 2px 16px rgba(0, 0, 0, .8);
     transition: transform .38s ease;
-}
-
-html[data-feed="1"] #place,
-html[data-feed="1"] #toggle-alerts {
-    transform: translateX(calc(min(380px, 34vw) + 20px));
-}
-
-html[data-feed="1"] #place { width: min(230px, calc(100vw - min(380px, 34vw) - 230px)); }
-
-html[data-feed="1"] main { padding-top: 250px; }
-
-html[data-feed="1"] .tools {
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 8px;
 }
 
 #place .where {
@@ -773,27 +881,6 @@ html[data-feed="1"] .tools {
     color: #f3f6fb;
 }
 
-#toggle-alerts {
-    position: fixed;
-    left: max(14px, env(safe-area-inset-left));
-    bottom: max(14px, env(safe-area-inset-bottom));
-    z-index: 40;
-    padding: 14px 18px;
-    border: 0;
-    background: #e10600;
-    color: #fff;
-    font-family: Unbounded, Manrope, sans-serif;
-    font-size: .72rem;
-    font-weight: 500;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-    transition: transform .38s ease;
-}
-
-#toggle-alerts[data-on="1"] { box-shadow: inset 0 -3px 0 #fff; }
-
-#toggle-alerts[data-alarm="1"] { background: #ff3b3b; color: #140406; }
-
 #igor-alert {
     margin: 10px 0 0;
     padding: 8px 10px;
@@ -865,16 +952,35 @@ html[data-feed="1"] .tools {
 
 @media (max-width: 760px) {
     body { overflow: hidden; }
-    #app {
+    #app,
+    html[data-feed="1"] #app,
+    html[data-calls="1"] #app,
+    html[data-news="1"] #app {
         position: fixed;
         inset: 0;
         min-height: 0;
+        padding: 0;
     }
-    .wall { display: none; }
+    #dock-l, #dock-r,
+    html[data-feed="1"] #dock-l,
+    html[data-calls="1"] #dock-l,
+    html[data-news="1"] #dock-r { z-index: 30; transform: translateY(-50%); }
+    html[data-news="1"] #visits,
+    html[data-feed="1"] #tg,
+    html[data-calls="1"] #tg,
+    html[data-news="1"] #tg { transform: none; }
+    #feed::after,
+    #calls::after,
+    #news::after { display: none; }
+    #feed .panel-in,
+    #calls .panel-in,
+    #news .panel-in { padding-left: 0; padding-right: 0; }
     #feed,
     #news,
+    #calls,
     html[data-feed="1"] #feed,
-    html[data-news="1"] #news {
+    html[data-news="1"] #news,
+    html[data-calls="1"] #calls {
         position: fixed;
         inset: 0;
         z-index: 20;
@@ -889,18 +995,23 @@ html[data-feed="1"] .tools {
         pointer-events: none;
     }
     html[data-feed="1"] #feed,
-    html[data-news="1"] #news {
+    html[data-news="1"] #news,
+    html[data-calls="1"] #calls {
         transform: none;
         visibility: visible;
         pointer-events: auto;
     }
     #feed .panel-in,
-    #news .panel-in { width: 100%; height: 100%; }
+    #news .panel-in,
+    #calls .panel-in { width: 100%; height: 100%; }
     .panel header,
     .hit,
-    .card .body { padding-left: 52px; padding-right: 52px; }
+    .card .body,
+    #calls .call-log { padding-left: 52px; padding-right: 52px; }
     .switch button { min-height: 32px; }
-    .rail { position: fixed; z-index: 30; }
+    html[data-feed="1"] #tg,
+    html[data-calls="1"] #tg,
+    html[data-news="1"] #tg { transform: none; }
     #alerts,
     html[data-alerts="1"] #alerts {
         top: 0;
@@ -914,9 +1025,9 @@ html[data-feed="1"] .tools {
         display: none;
     }
     html[data-alerts="1"] #alerts { display: flex; transform: none; }
-    html[data-feed="1"] #place { transform: translateY(calc(-100% - 28px)); }
-    html[data-feed="1"] #toggle-alerts { transform: translateY(calc(100% + 28px)); }
-    html[data-news="1"] #tg { transform: translateY(calc(100% + 28px)); }
+    html[data-feed="1"] #place,
+    html[data-calls="1"] #place,
+    html[data-news="1"] #place { transform: translateY(calc(-100% - 28px)); }
     #alerts header { width: 120px; flex-basis: 120px; padding: 16px 12px 16px 56px; }
     main {
         flex: 1 1 auto;
@@ -952,10 +1063,12 @@ try {
     var savedDrawers = JSON.parse(localStorage.getItem('igor_drawers_v1') || '{}');
     document.documentElement.dataset.feed = savedDrawers.feed ? '1' : '0';
     document.documentElement.dataset.news = savedDrawers.news ? '1' : '0';
+    document.documentElement.dataset.calls = savedDrawers.calls ? '1' : '0';
     document.documentElement.dataset.alerts = savedDrawers.alerts ? '1' : '0';
 } catch (e) {
     document.documentElement.dataset.feed = '0';
     document.documentElement.dataset.news = '0';
+    document.documentElement.dataset.calls = '0';
     document.documentElement.dataset.alerts = '0';
 }
 </script>
@@ -965,7 +1078,22 @@ try {
 <div class="layer" id="bg"></div>
 <div class="layer" id="shade"></div>
 <canvas class="layer" id="snow"></canvas>
+<nav class="edge" id="dock-l" aria-label="Видео и звонки">
+    <button type="button" id="toggle-feed" aria-controls="feed" aria-expanded="false">Видео</button>
+    <button type="button" id="toggle-calls" aria-controls="calls" aria-expanded="false">Звонки</button>
+</nav>
+<nav class="edge" id="dock-r" aria-label="Новости и тревоги">
+    <button type="button" id="toggle-news" aria-controls="news" aria-expanded="false">Новости</button>
+    <button type="button" id="toggle-alerts" aria-controls="alerts" aria-expanded="false">Тревоги</button>
+</nav>
 <a id="tg" href="https://t.me/armyvendetta" target="_blank" rel="noopener">Телеграм</a>
+<p id="visits" hidden aria-label="Заходы на сайт">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="none" stroke="currentColor" stroke-width="1.8" d="M2.2 12s3.4-6.2 9.8-6.2S21.8 12 21.8 12 18.4 18.2 12 18.2 2.2 12 2.2 12z"/>
+        <circle cx="12" cy="12" r="2.5" fill="currentColor"/>
+    </svg>
+    <b id="visits-n">0</b>
+</p>
 <div id="place">
     <p class="where">Игорь находится примерно в этом округе</p>
     <p class="spot"><b>Астраханская область</b><small>село Знаменск</small></p>
@@ -973,8 +1101,6 @@ try {
     <p class="wx"><b id="wx-temp">—</b><span id="wx-sky"></span></p>
     <p id="igor-alert" hidden></p>
 </div>
-<button type="button" id="toggle-alerts" aria-controls="alerts" aria-expanded="false">Тревоги</button>
-
 <div id="app">
     <aside class="panel" id="feed">
         <div class="panel-in">
@@ -992,11 +1118,19 @@ try {
         <div class="tape" id="tape"></div>
         </div>
     </aside>
-    <div class="wall" id="wall-feed"></div>
-
+    <aside class="panel" id="calls">
+        <div class="panel-in">
+            <header>
+                <h2>Телефонные разговоры</h2>
+                <div class="checkins">
+                    <b id="checkins">2</b>
+                    <span id="checkins-l">раза выходил на связь</span>
+                </div>
+            </header>
+            <ol class="call-log" id="call-log"></ol>
+        </div>
+    </aside>
     <main>
-        <button type="button" class="rail rail-l" id="toggle-feed" aria-controls="feed" aria-expanded="false">Видео</button>
-        <button type="button" class="rail rail-r" id="toggle-news" aria-controls="news" aria-expanded="false">Новости</button>
         <div class="tools">
             <button type="button" id="share">Поделиться</button>
             <button type="button" id="sound" data-on="0">Включить звук</button>
@@ -1020,25 +1154,16 @@ try {
                 <div class="zone"><strong>Москва</strong><b id="z-msk">—</b></div>
                 <div class="zone sib"><strong>Сибирь</strong><b id="z-sib">—</b></div>
             </div>
-            <section class="farewell">
-                <span class="kicker">Последнее сообщение</span>
-                <span class="kicker-sub">перед отъездом</span>
-                <div class="zones">
-                    <div class="zone"><strong>Киев</strong><b id="note-kyiv">—</b><small id="note-kyiv-d"></small></div>
-                    <div class="zone"><strong>Москва</strong><b id="note-msk">—</b><small id="note-msk-d"></small></div>
-                    <div class="zone sib"><strong>Сибирь</strong><b id="note-sib">—</b><small id="note-sib-d"></small></div>
-                </div>
-                <p class="letter">вот и всё ребятки пора прощаться всех обнял всем удачи во всём! всем пока пока спасибо за ваши слова будет вас не хватать каждого, скоро увидимся.</p>
+            <section class="latest" aria-label="Последний выход на связь">
                 <div class="checkins">
-                    <b id="checkins">1</b>
-                    <span id="checkins-l">раз вышел на связь</span>
+                    <b id="checkins-main">2</b>
+                    <span id="checkins-main-l">раза выходил на связь</span>
                 </div>
-                <ol class="call-log" id="call-log"></ol>
+                <p class="kicker" id="latest-when">25 ноября · 16:08 Киев · 17:08 Москва · 21:08 Сибирь</p>
+                <p class="letter" id="latest-text">Хуем пО лбу не дало я пОд ростов нахуй еду</p>
             </section>
         </div>
     </main>
-
-    <div class="wall" id="wall-news"></div>
     <aside class="panel" id="news">
         <div class="panel-in">
         <header>
@@ -1088,14 +1213,19 @@ try {
     const PLACE = { lat: 48.586, lon: 45.736 };
     // Сообщение написано 24 ноября в полночь по Киеву.
     const NOTE_AT = new Date('2026-11-24T00:00:00+02:00');
-    // Звонки Игоря. Новая запись сверху. Счётчик сам берётся из длины списка.
+    // Звонки Игоря. Новая запись добавляется сверху. Счётчик считает только звонки.
     const CALLS = [
         {
-            when: '25 ноября, 06:47',
+            when: '25 ноября · 16:08 Киев · 17:08 Москва · 21:08 Сибирь',
+            text: 'Хуем пО лбу не дало я пОд ростов нахуй еду'
+        },
+        {
+            when: '25 ноября · 05:47 Киев · 06:47 Москва · 10:47 Сибирь',
             text: 'Позвонил Мортальчику и сразу сбросил, ничего не сказав. Пока не ясно, почему он сбросил и всё ли у него хорошо. Он живой.'
         }
     ];
     const CHECKINS = CALLS.length;
+    const LETTER = 'вот и всё ребятки пора прощаться всех обнял всем удачи во всём! всем пока пока спасибо за ваши слова будет вас не хватать каждого, скоро увидимся.';
 
     const CHANNELS = [
         { key: 'shtefanov', name: 'Штефанов', id: 'UCVVNJJXC7TQgPpAjQdgrqNw', node: 'n-sh' },
@@ -1331,8 +1461,15 @@ try {
         setText($('hours-l'), plural(hours, 'час', 'часа', 'часов'));
         setText($('minutes-l'), plural(minutes, 'минута', 'минуты', 'минут'));
         setText($('seconds-l'), plural(seconds, 'секунда', 'секунды', 'секунд'));
+        const checkWord = plural(CHECKINS, 'раз вышел на связь', 'раза выходил на связь', 'раз выходил на связь');
         setText($('checkins'), String(CHECKINS));
-        setText($('checkins-l'), plural(CHECKINS, 'раз вышел на связь', 'раза выходил на связь', 'раз выходил на связь'));
+        setText($('checkins-main'), String(CHECKINS));
+        setText($('checkins-l'), checkWord);
+        setText($('checkins-main-l'), checkWord);
+        if (CALLS[0]) {
+            setText($('latest-when'), CALLS[0].when);
+            setText($('latest-text'), CALLS[0].text);
+        }
         const log = $('call-log');
         if (log && !log.childElementCount) {
             CALLS.forEach(call => {
@@ -1344,6 +1481,17 @@ try {
                 item.append(time, text);
                 log.append(item);
             });
+            const letter = document.createElement('li');
+            letter.className = 'farewell';
+            letter.innerHTML = '<time>перед отъездом</time>'
+                + '<div class="zones">'
+                + '<div class="zone"><strong>Киев</strong><b id="note-kyiv">—</b><small id="note-kyiv-d"></small></div>'
+                + '<div class="zone"><strong>Москва</strong><b id="note-msk">—</b><small id="note-msk-d"></small></div>'
+                + '<div class="zone sib"><strong>Сибирь</strong><b id="note-sib">—</b><small id="note-sib-d"></small></div>'
+                + '</div>'
+                + '<p class="letter"></p>';
+            letter.querySelector('.letter').textContent = LETTER;
+            log.append(letter);
         }
         [
             ['note-kyiv', 'Europe/Kyiv'],
@@ -1494,30 +1642,64 @@ try {
 
     function paintDrawer(name) {
         const open = document.documentElement.dataset[name] === '1';
-        const btn = $(name === 'feed' ? 'toggle-feed' : 'toggle-news');
+        const btn = $('toggle-' + name);
         btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-        btn.textContent = open ? 'Закрыть' : (name === 'feed' ? 'Видео' : 'Новости');
     }
 
-    function toggleDrawer(name) {
-        const open = document.documentElement.dataset[name] === '1';
-        document.documentElement.dataset[name] = open ? '0' : '1';
-        paintDrawer(name);
+    function saveDrawers() {
         try {
             localStorage.setItem('igor_drawers_v1', JSON.stringify({
                 feed: document.documentElement.dataset.feed === '1',
                 news: document.documentElement.dataset.news === '1',
+                calls: document.documentElement.dataset.calls === '1',
                 alerts: document.documentElement.dataset.alerts === '1'
             }));
         } catch (e) {}
-        if (name === 'news' && document.documentElement.dataset.news === '1') refreshNews();
-        if (name === 'feed' && document.documentElement.dataset.feed === '1') refreshFeeds();
+    }
+
+    function toggleDrawer(name) {
+        const root = document.documentElement;
+        const open = root.dataset[name] === '1';
+        if (!open && (name === 'feed' || name === 'calls')) {
+            const other = name === 'feed' ? 'calls' : 'feed';
+            if (root.dataset[other] === '1') {
+                const feed = $('feed');
+                const calls = $('calls');
+                feed.style.transition = 'none';
+                calls.style.transition = 'none';
+                root.dataset[other] = '0';
+                root.dataset[name] = '1';
+                paintDrawer(other);
+                paintDrawer(name);
+                feed.offsetWidth;
+                feed.style.transition = '';
+                calls.style.transition = '';
+                saveDrawers();
+                if (name === 'feed') {
+                    renderTape();
+                    refreshFeeds();
+                }
+                return;
+            }
+            root.dataset[other] = '0';
+            paintDrawer(other);
+        }
+        root.dataset[name] = open ? '0' : '1';
+        paintDrawer(name);
+        saveDrawers();
+        if (name === 'news' && root.dataset.news === '1') refreshNews();
+        if (name === 'feed' && root.dataset.feed === '1') {
+            renderTape();
+            refreshFeeds();
+        }
     }
 
     paintDrawer('feed');
     paintDrawer('news');
+    paintDrawer('calls');
     $('toggle-feed').addEventListener('click', () => toggleDrawer('feed'));
     $('toggle-news').addEventListener('click', () => toggleDrawer('news'));
+    $('toggle-calls').addEventListener('click', () => toggleDrawer('calls'));
 
     const MAPS = {
         ua: { href: 'https://alerts.in.ua/', name: 'alerts.in.ua', frame: 'map-ua' },
@@ -1591,6 +1773,7 @@ try {
             localStorage.setItem('igor_drawers_v1', JSON.stringify({
                 feed: document.documentElement.dataset.feed === '1',
                 news: document.documentElement.dataset.news === '1',
+                calls: document.documentElement.dataset.calls === '1',
                 alerts: next
             }));
         } catch (e) {}
@@ -1864,7 +2047,7 @@ try {
         try {
             const res = await withTimeout(fetch('https://r.jina.ai/https://www.youtube.com/shorts/' + id, {
                 headers: { 'X-Return-Format': 'html' }
-            }), 20000);
+            }), 12000);
             if (!res.ok) return '';
             const text = await res.text();
             const arg = 'app-argument=https://www.youtube.com/';
@@ -1884,36 +2067,52 @@ try {
     }
 
     let fetching = false;
+    let feedAgain = false;
 
-    async function refreshFeeds() {
-        if (fetching) return;
-        fetching = true;
-        let failed = 0;
-        await Promise.all(CHANNELS.map(async ch => {
-            try {
-                const rows = await fetchChannelVideos(ch.id);
-                const fresh = rows.filter(row => row.t >= DRAFT_MS);
-                for (let i = 0; i < fresh.length; i++) {
-                    if (kinds[fresh[i].id] !== 'video' && kinds[fresh[i].id] !== 'skip') await kindOf(fresh[i].id);
-                }
-                const bag = store[ch.key] || (store[ch.key] = {});
-                fresh.forEach(row => {
-                    if (kinds[row.id] === 'video') bag[row.id] = row.t;
-                    else if (kinds[row.id] === 'skip') delete bag[row.id];
-                });
-                Object.keys(bag).forEach(id => {
-                    if (kinds[id] === 'skip') delete bag[id];
-                });
-                latest[ch.key] = rows.filter(row => row.t < DRAFT_MS || kinds[row.id] === 'video');
-            } catch (e) {
-                failed += 1;
-            }
-        }));
-        fetching = false;
+    async function paintChannel(ch, rows) {
+        const bag = store[ch.key] || (store[ch.key] = {});
+        rows.forEach(row => {
+            if (row.t < DRAFT_MS) return;
+            if (kinds[row.id] === 'video') bag[row.id] = row.t;
+            else if (kinds[row.id] === 'skip') delete bag[row.id];
+        });
+        latest[ch.key] = rows.filter(row => row.t >= DRAFT_MS && kinds[row.id] === 'video');
         renderTape();
         renderMissed();
-        if (failed === CHANNELS.length) return;
-        saveStore(store);
+    }
+
+    async function loadChannel(ch) {
+        const rows = await fetchChannelVideos(ch.id);
+        await paintChannel(ch, rows);
+        const fresh = rows.filter(row => row.t >= DRAFT_MS && kinds[row.id] !== 'video' && kinds[row.id] !== 'skip');
+        await Promise.all(fresh.map(row => kindOf(row.id)));
+        await paintChannel(ch, rows);
+    }
+
+    async function refreshFeeds() {
+        if (fetching) {
+            feedAgain = true;
+            return;
+        }
+        fetching = true;
+        try {
+            do {
+                feedAgain = false;
+                let failed = 0;
+                await Promise.all(CHANNELS.map(async ch => {
+                    try {
+                        await loadChannel(ch);
+                    } catch (e) {
+                        failed += 1;
+                    }
+                }));
+                renderTape();
+                renderMissed();
+                if (failed < CHANNELS.length) saveStore(store);
+            } while (feedAgain);
+        } finally {
+            fetching = false;
+        }
     }
 
     function safeImg(url) {
@@ -2228,6 +2427,25 @@ try {
         }
     }
 
+    async function countVisit() {
+        const line = $('visits');
+        try {
+            const seen = sessionStorage.getItem('igor_visit_v1');
+            const url = seen
+                ? 'https://countapi.mileshilliard.com/api/v1/get/dansonkm-igor-army-visits'
+                : 'https://countapi.mileshilliard.com/api/v1/hit/dansonkm-igor-army-visits';
+            const res = await withTimeout(fetch(url), 8000);
+            if (!res.ok) return;
+            const data = await res.json();
+            const n = Number(data.value);
+            if (!Number.isFinite(n) || n < 1) return;
+            if (!seen) sessionStorage.setItem('igor_visit_v1', '1');
+            setText($('visits-n'), String(n));
+            line.setAttribute('aria-label', n + ' ' + plural(n, 'заход', 'захода', 'заходов'));
+            line.hidden = false;
+        } catch (e) {}
+    }
+
     renderMissed();
     refreshFeeds();
     refreshNews();
@@ -2238,6 +2456,7 @@ try {
         if (document.documentElement.dataset.alerts === '1') showMap(alertMap);
     }, 60 * 1000);
     watchPlace();
+    countVisit();
     refreshWeather();
     setInterval(refreshWeather, 30 * 60 * 1000);
     if (document.documentElement.dataset.alerts === '1') showMap(alertMap);

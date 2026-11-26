@@ -1096,8 +1096,8 @@ try {
 </p>
 <div id="place">
     <p class="where">Игорь находится примерно в этом округе</p>
-    <p class="spot"><b>Астраханская область</b><small>село Знаменск</small></p>
-    <p class="ark"><span>Астрахань</span><b id="z-ark">—</b></p>
+    <p class="spot"><b>Ростовская область</b></p>
+    <p class="ark"><span>Ростов</span><b id="z-ark">—</b></p>
     <p class="wx"><b id="wx-temp">—</b><span id="wx-sky"></span></p>
     <p id="igor-alert" hidden></p>
 </div>
@@ -1123,7 +1123,7 @@ try {
             <header>
                 <h2>Телефонные разговоры</h2>
                 <div class="checkins">
-                    <b id="checkins">2</b>
+                    <b id="checkins">3</b>
                     <span id="checkins-l">раза выходил на связь</span>
                 </div>
             </header>
@@ -1156,11 +1156,11 @@ try {
             </div>
             <section class="latest" aria-label="Последний выход на связь">
                 <div class="checkins">
-                    <b id="checkins-main">2</b>
+                    <b id="checkins-main">3</b>
                     <span id="checkins-main-l">раза выходил на связь</span>
                 </div>
-                <p class="kicker" id="latest-when">25 ноября · 16:08 Киев · 17:08 Москва · 21:08 Сибирь</p>
-                <p class="letter" id="latest-text">Хуем пО лбу не дало я пОд ростов нахуй еду</p>
+                <p class="kicker" id="latest-when">26 ноября · 16:08 Киев · 17:08 Москва · 21:08 Сибирь</p>
+                <p class="letter" id="latest-text">Короче завтра на пОезд в часть сажусь пОка гуд все особо не ебут и не спАмьте особо хуйни и другим пЕредай я не знаю как здесь ставить точки пИсать на этой хуне пЫтйа хуже армии</p>
             </section>
         </div>
     </main>
@@ -1209,12 +1209,16 @@ try {
     const END = new Date('2027-11-24T06:00:00+07:00');
     const END_MS = END.getTime();
     const SIBERIA = 'Asia/Krasnoyarsk';
-    // Погода у места службы. Знаменск в Астраханской области, точка примерная.
-    const PLACE = { lat: 48.586, lon: 45.736 };
+    // Погода по Ростовской области. Точка примерная, город Ростов-на-Дону.
+    const PLACE = { lat: 47.222, lon: 39.720 };
     // Сообщение написано 24 ноября в полночь по Киеву.
     const NOTE_AT = new Date('2026-11-24T00:00:00+02:00');
     // Звонки Игоря. Новая запись добавляется сверху. Счётчик считает только звонки.
     const CALLS = [
+        {
+            when: '26 ноября · 16:08 Киев · 17:08 Москва · 21:08 Сибирь',
+            text: 'Короче завтра на пОезд в часть сажусь пОка гуд все особо не ебут и не спАмьте особо хуйни и другим пЕредай я не знаю как здесь ставить точки пИсать на этой хуне пЫтйа хуже армии'
+        },
         {
             when: '25 ноября · 16:08 Киев · 17:08 Москва · 21:08 Сибирь',
             text: 'Хуем пО лбу не дало я пОд ростов нахуй еду'
@@ -1395,9 +1399,6 @@ try {
     const zoneFmt = Object.fromEntries(ZONES.map(z => [z.tz, new Intl.DateTimeFormat('ru-RU', {
         timeZone: z.tz, hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23'
     })]));
-    zoneFmt['Europe/Astrakhan'] = new Intl.DateTimeFormat('ru-RU', {
-        timeZone: 'Europe/Astrakhan', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23'
-    });
     const noteTimeFmt = Object.fromEntries(ZONES.map(z => [z.tz, new Intl.DateTimeFormat('ru-RU', {
         timeZone: z.tz, hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
     })]));
@@ -1527,7 +1528,7 @@ try {
 
         const now = new Date();
         ZONES.forEach(z => setText($(z.id), zoneFmt[z.tz].format(now)));
-        setText($('z-ark'), zoneFmt['Europe/Astrakhan'].format(now));
+        setText($('z-ark'), zoneFmt['Europe/Moscow'].format(now));
 
         document.title = serving
             ? days + ' ' + plural(days, 'день', 'дня', 'дней') + ' · Игоря забрали'
@@ -1745,16 +1746,16 @@ try {
             if (res.ok) {
                 const data = await res.json();
                 const rows = (data.snapshot && data.snapshot.latestByRegion) || [];
-                const row = rows.find(item => item.regionId === 'RU-AST');
+                const row = rows.find(item => item.regionId === 'RU-ROS');
                 const at = row ? Date.parse(row.occurredAt || '') : 0;
                 if (row && ARK_REASONS[row.type] && at >= fresh) return ARK_REASONS[row.type];
             }
         } catch (e) {}
         try {
-            const res = await withTimeout(fetch('https://pulse.errata.page/api/alerts/?series=0&region=RU-AST'), 8000);
+            const res = await withTimeout(fetch('https://pulse.errata.page/api/alerts/?series=0&region=RU-ROS'), 8000);
             if (res.ok) {
                 const data = await res.json();
-                const info = data.active && data.active['RU-AST'];
+                const info = data.active && data.active['RU-ROS'];
                 if (info && !info.stale) {
                     if (info.uav) return 'опасность БПЛА';
                     if (info.missile) return 'ракетная опасность';
@@ -1784,7 +1785,7 @@ try {
         const line = $('igor-alert');
         try {
             const reason = await arkReason();
-            line.textContent = reason ? ('В Астраханской области тревога: ' + reason) : '';
+            line.textContent = reason ? ('В Ростовской области тревога: ' + reason) : '';
             line.hidden = !reason;
             $('toggle-alerts').dataset.alarm = reason ? '1' : '0';
         } catch (e) {}
@@ -1816,7 +1817,7 @@ try {
         try {
             const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + PLACE.lat
                 + '&longitude=' + PLACE.lon
-                + '&current=temperature_2m,weather_code,cloud_cover&timezone=Europe%2FAstrakhan';
+                + '&current=temperature_2m,weather_code,cloud_cover&timezone=Europe%2FMoscow';
             const res = await fetch(url);
             if (!res.ok) return;
             const data = await res.json();
